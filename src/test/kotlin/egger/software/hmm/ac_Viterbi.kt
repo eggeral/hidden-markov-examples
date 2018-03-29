@@ -147,18 +147,28 @@ class ViterbiExample : BehaviorSpec() {
 
                     var mostLikelyStateSequence = listOf<Weather>(pathEnding.state)
                     var currentState = pathEnding.state
-                    for (idx in 2 downTo  1) {
+                    for (idx in 2 downTo 1) {
                         val previousState = psi[currentState]!![idx]!!
                         mostLikelyStateSequence = listOf(previousState) + mostLikelyStateSequence
                         currentState = previousState
                     }
 
                     mostLikelyStateSequence shouldBe listOf(Foggy, Rainy, Rainy)
+
+                    // Alternative
+                    HiddenMarkovModel(
+                            initialStateProbabilities = listOf(Sunny withProbabilityOf 1.0 / 3.0, Rainy withProbabilityOf 1.0 / 3.0, Foggy withProbabilityOf 1.0 / 3.0),
+                            stateTransitions = weatherTable,
+                            observationProbabilities = caretakerTable)
+                            .observing(NoUmbrella, Umbrella, Umbrella)
+                            .mostLikelyStateSequence shouldBe listOf(Foggy, Rainy, Rainy)
+
                 }
             }
         }
     }
 }
+
 
 
 

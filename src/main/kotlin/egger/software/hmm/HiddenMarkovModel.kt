@@ -27,7 +27,6 @@ class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<St
     }
 
     val states get() = stateTransitions.states
-    val observations get() = observationProbabilities.observations
 
 }
 
@@ -97,7 +96,7 @@ val <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
         val pathEnding = requireNotNull(delta.entries.map { d -> StateWithProbability(d.key, d.value[2]) }.maxBy { s -> s.probability })
 
-        var mostLikelyStateSequence = listOf<TState>(pathEnding.state)
+        var mostLikelyStateSequence = listOf(pathEnding.state)
         var currentState = pathEnding.state
         for (idx in 2 downTo 1) {
             val previousState = psi[currentState]!![idx]!!

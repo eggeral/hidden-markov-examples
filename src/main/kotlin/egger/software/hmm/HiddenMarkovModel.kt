@@ -51,6 +51,9 @@ fun <TState, TObservation> HiddenMarkovModelWithObservationsAndStartingProbabili
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.observing(vararg observations: TObservation): HiddenMarkovModelWithObservations<TState, TObservation> =
         HiddenMarkovModelWithObservations(this, observations.asList())
 
+fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.observing(observations: List<TObservation>): HiddenMarkovModelWithObservations<TState, TObservation> =
+        HiddenMarkovModelWithObservations(this, observations)
+
 val <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.mostLikelyStateSequence: List<TState>
     get() {
 
@@ -98,7 +101,7 @@ val <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
         var mostLikelyStateSequence = listOf(pathEnding.state)
         var currentState = pathEnding.state
-        for (idx in 2 downTo 1) {
+        for (idx in observations.size-1 downTo 1) {
             val previousState = psi[currentState]!![idx]!!
             mostLikelyStateSequence = listOf(previousState) + mostLikelyStateSequence
             currentState = previousState

@@ -56,41 +56,19 @@ class PlanetMedianExample : BehaviorSpec() {
                     estimatedInitialStateProbabilities[2].state shouldBe Red
                     estimatedInitialStateProbabilities[2].probability shouldBe 0.28.plusOrMinus(0.01)
 
-                    val states = estimatedInitialStateProbabilities.map { it.state }
-                    var previous = stateList.first()
+                    val estimatedModel = estimateStateTransitionTable(stateList)
 
-                    val stateCounts = mutableMapOf<Tile, MutableMap<Tile, Int>>()
-                    for (state in stateList.drop(1)) {
+                    estimatedModel.given(Red) probabilityOf (Red) shouldBe (0.25.plusOrMinus(0.01))
+                    estimatedModel.given(Red) probabilityOf (Green) shouldBe (0.5.plusOrMinus(0.01))
+                    estimatedModel.given(Red) probabilityOf (Blue) shouldBe (0.25.plusOrMinus(0.01))
 
-                        val source = stateCounts.getOrPut(previous) { mutableMapOf() }
-                        source.compute(state) { _, v -> if (v == null) 1 else v + 1 }
-                        previous = state
+                    estimatedModel.given(Green) probabilityOf (Red) shouldBe (0.3.plusOrMinus(0.01))
+                    estimatedModel.given(Green) probabilityOf (Green) shouldBe (0.4.plusOrMinus(0.01))
+                    estimatedModel.given(Green) probabilityOf (Blue) shouldBe (0.3.plusOrMinus(0.01))
 
-                    }
-
-                    val estimatedModel = stateTransitionTable<Tile, Tile> {
-
-                        for (state in states) {
-                            val counts = requireNotNull(stateCounts[state])
-                            val total = counts.map { entry -> entry.value }.sum().toDouble()
-                            for (destination in counts) {
-                                state resultsIn (destination.key withProbabilityOf destination.value.toDouble() / total)
-                            }
-                        }
-
-                    }
-
-                    estimatedModel.given(Red) probabilityOf(Red) shouldBe (0.25.plusOrMinus(0.01))
-                    estimatedModel.given(Red) probabilityOf(Green) shouldBe (0.5.plusOrMinus(0.01))
-                    estimatedModel.given(Red) probabilityOf(Blue) shouldBe (0.25.plusOrMinus(0.01))
-
-                    estimatedModel.given(Green) probabilityOf(Red) shouldBe (0.3.plusOrMinus(0.01))
-                    estimatedModel.given(Green) probabilityOf(Green) shouldBe (0.4.plusOrMinus(0.01))
-                    estimatedModel.given(Green) probabilityOf(Blue) shouldBe (0.3.plusOrMinus(0.01))
-
-                    estimatedModel.given(Blue) probabilityOf(Red) shouldBe (0.3.plusOrMinus(0.01))
-                    estimatedModel.given(Blue) probabilityOf(Green) shouldBe (0.5.plusOrMinus(0.01))
-                    estimatedModel.given(Blue) probabilityOf(Blue) shouldBe (0.2.plusOrMinus(0.01))
+                    estimatedModel.given(Blue) probabilityOf (Red) shouldBe (0.3.plusOrMinus(0.01))
+                    estimatedModel.given(Blue) probabilityOf (Green) shouldBe (0.5.plusOrMinus(0.01))
+                    estimatedModel.given(Blue) probabilityOf (Blue) shouldBe (0.2.plusOrMinus(0.01))
 
                 }
             }

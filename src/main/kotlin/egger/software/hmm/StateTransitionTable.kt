@@ -59,3 +59,32 @@ fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(vararg sta
     }
     return result
 }
+
+fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransitionTable<TState, TState> {
+
+    val states = stateList.groupBy { it }.map { entry -> entry.key }
+    var previous = stateList.first()
+
+    val stateCounts = mutableMapOf<TState, MutableMap<TState, Int>>()
+    for (state in stateList.drop(1)) {
+
+        val source = stateCounts.getOrPut(previous) { mutableMapOf() }
+        source.compute(state) { _, v -> if (v == null) 1 else v + 1 }
+        previous = state
+
+    }
+
+    return stateTransitionTable<TState, TState> {
+
+        for (state in states) {
+            val counts = requireNotNull(stateCounts[state])
+            val total = counts.map { entry -> entry.value }.sum().toDouble()
+            for (destination in counts) {
+                state resultsIn (destination.key withProbabilityOf destination.value.toDouble() / total)
+            }
+        }
+
+    }
+
+
+}

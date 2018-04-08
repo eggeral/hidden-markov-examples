@@ -2,8 +2,8 @@ package egger.software.hmm
 
 
 class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<StateWithProbability<TState>>,
-                                              val stateTransitions: ProbabilitiesTable<TState, TState>,
-                                              val observationProbabilities: ProbabilitiesTable<TState, TObservation>) {
+                                              val stateTransitions: StateTransitionTable<TState, TState>,
+                                              val observationProbabilities: StateTransitionTable<TState, TObservation>) {
 
     private val initialStateProbabilitiesMap = mutableMapOf<TState, Double>()
 
@@ -26,7 +26,7 @@ class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<St
 
     }
 
-    val states get() = stateTransitions.states
+    val states get() = stateTransitions.sources
 
 }
 

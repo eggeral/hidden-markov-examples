@@ -20,7 +20,7 @@ class MarkovAssumptionExample : BehaviorSpec() {
 
     init {
         Given("the weather probabilities table") {
-            val weatherTable = probabilitiesTable<Weather, Weather> {
+            val weatherTable = stateTransitionTable<Weather, Weather> {
 
                 Sunny resultsIn (Sunny withProbabilityOf 0.8)
                 Sunny resultsIn (Rainy withProbabilityOf 0.05)

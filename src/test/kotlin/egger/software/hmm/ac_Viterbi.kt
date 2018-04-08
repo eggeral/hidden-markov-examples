@@ -14,7 +14,7 @@ class ViterbiExample : BehaviorSpec() {
 
     init {
         Given("the weather probabilities table and umbrella probabilities") {
-            val weatherTable = probabilitiesTable<Weather, Weather> {
+            val weatherTable = stateTransitionTable<Weather, Weather> {
 
                 Sunny resultsIn (Sunny withProbabilityOf 0.8)
                 Sunny resultsIn (Rainy withProbabilityOf 0.05)
@@ -30,7 +30,7 @@ class ViterbiExample : BehaviorSpec() {
 
             }
 
-            val caretakerTable = probabilitiesTable<Weather, Caretaker> {
+            val caretakerTable = stateTransitionTable<Weather, Caretaker> {
                 Sunny resultsIn (Umbrella withProbabilityOf 0.1)
                 Sunny resultsIn (NoUmbrella withProbabilityOf 0.9)
 

@@ -50,7 +50,7 @@ private val List<TossRow>.coins: List<Coin>
     get() = this.map { row -> row.coin }
 
 fun estimateMostLikelyCoinSequenceBasedOnTosses(masterData: MasterData, tosses: List<Toss>): List<Coin> {
-    val coinTable = probabilitiesTable<Coin, Coin> {
+    val coinTable = stateTransitionTable<Coin, Coin> {
 
         Fair resultsIn (UnFair withProbabilityOf masterData.probabilityOfChangingCoins)
         Fair resultsIn (Fair withProbabilityOf 1.0 - masterData.probabilityOfChangingCoins)
@@ -60,7 +60,7 @@ fun estimateMostLikelyCoinSequenceBasedOnTosses(masterData: MasterData, tosses: 
 
     }
 
-    val observationTable = probabilitiesTable<Coin, Toss> {
+    val observationTable = stateTransitionTable<Coin, Toss> {
 
         Fair resultsIn (Heads withProbabilityOf masterData.probabilityOfFairHeads)
         Fair resultsIn (Tails withProbabilityOf 1.0 - masterData.probabilityOfFairHeads)

@@ -26,7 +26,7 @@ class CoinTossExample : BehaviorSpec() {
 
     init {
         Given("the probabilities table for changing the coin") {
-            val coinTable = probabilitiesTable<Coin, Coin> {
+            val coinTable = stateTransitionTable<Coin, Coin> {
 
                 Fair resultsIn (UnFair withProbabilityOf 0.1)
                 Fair resultsIn (Fair withProbabilityOf 0.9)
@@ -36,7 +36,7 @@ class CoinTossExample : BehaviorSpec() {
 
             }
 
-            val observationTable = probabilitiesTable<Coin, Toss> {
+            val observationTable = stateTransitionTable<Coin, Toss> {
 
                 Fair resultsIn (Heads withProbabilityOf 0.5)
                 Fair resultsIn (Tails withProbabilityOf 0.5)

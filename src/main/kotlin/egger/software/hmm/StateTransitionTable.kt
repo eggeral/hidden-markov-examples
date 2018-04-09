@@ -44,7 +44,8 @@ infix fun <TState> TState.withProbabilityOf(probability: Double) = StateWithProb
 infix fun <TState> Map<TState, Double>.probabilityOf(state: TState) = this[state]
         ?: throw IllegalStateException("State: $state not found")
 
-fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(vararg states: TState): Double {
+
+fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(states: List<TState>): Double {
     var result = 1.0
     var previous: TState? = null
     for (state in states) {
@@ -59,6 +60,8 @@ fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(vararg sta
     }
     return result
 }
+
+fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(vararg states: TState): Double = this.sequenceProbability(*states)
 
 fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransitionTable<TState, TState> {
 

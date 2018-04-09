@@ -15,7 +15,7 @@ fun <TState> Iterable<StateWithProbability<TState>>.selectStateAtOffset(offset: 
         statesSortedWithAccumulatedProbability.add(StateWithProbability(it.state, sum))
     }
 
-    require(statesSortedWithAccumulatedProbability.last().probability == 1.0, { "Probabilities have to sum up to 1.0" })
+    require(statesSortedWithAccumulatedProbability.last().probability == 1.0, { "Probabilities have to sum up to 1.0 but was ${statesSortedWithAccumulatedProbability.last().probability}" })
 
     for (stateWithProbability in statesSortedWithAccumulatedProbability) {
         if (offset < stateWithProbability.probability)

@@ -1,6 +1,7 @@
 package egger.software.hmm
 
 import egger.software.hmm.Tile.*
+import io.kotlintest.matchers.gt
 import io.kotlintest.matchers.plusOrMinus
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.BehaviorSpec
@@ -73,6 +74,108 @@ class PlanetMedianExample : BehaviorSpec() {
                 }
             }
         }
+
+
+
+        Given("tile sequences of all four provinces") {
+            val northTrueModel = stateTransitionTable<Tile, Tile> {
+
+                Red resultsIn (Red withProbabilityOf 0.25)
+                Red resultsIn (Green withProbabilityOf 0.5)
+                Red resultsIn (Blue withProbabilityOf 0.25)
+
+                Green resultsIn (Red withProbabilityOf 0.3)
+                Green resultsIn (Green withProbabilityOf 0.4)
+                Green resultsIn (Blue withProbabilityOf 0.3)
+
+                Blue resultsIn (Red withProbabilityOf 0.3)
+                Blue resultsIn (Green withProbabilityOf 0.5)
+                Blue resultsIn (Blue withProbabilityOf 0.2)
+
+            }
+            val northInitialProbabilities = listOf(Red withProbabilityOf 0.2, Green withProbabilityOf 0.6, Blue withProbabilityOf 0.2)
+
+            val eastTrueModel = stateTransitionTable<Tile, Tile> {
+
+                Red resultsIn (Red withProbabilityOf 0.4)
+                Red resultsIn (Green withProbabilityOf 0.3)
+                Red resultsIn (Blue withProbabilityOf 0.3)
+
+                Green resultsIn (Red withProbabilityOf 0.5)
+                Green resultsIn (Green withProbabilityOf 0.25)
+                Green resultsIn (Blue withProbabilityOf 0.25)
+
+                Blue resultsIn (Red withProbabilityOf 0.4)
+                Blue resultsIn (Green withProbabilityOf 0.3)
+                Blue resultsIn (Blue withProbabilityOf 0.3)
+
+            }
+            val eastInitialProbabilities = listOf(Red withProbabilityOf 0.5, Green withProbabilityOf 0.25, Blue withProbabilityOf 0.25)
+
+            val southTrueModel = stateTransitionTable<Tile, Tile> {
+
+                Red resultsIn (Red withProbabilityOf 0.2)
+                Red resultsIn (Green withProbabilityOf 0.3)
+                Red resultsIn (Blue withProbabilityOf 0.5)
+
+                Green resultsIn (Red withProbabilityOf 0.3)
+                Green resultsIn (Green withProbabilityOf 0.3)
+                Green resultsIn (Blue withProbabilityOf 0.4)
+
+                Blue resultsIn (Red withProbabilityOf 0.2)
+                Blue resultsIn (Green withProbabilityOf 0.2)
+                Blue resultsIn (Blue withProbabilityOf 0.6)
+
+            }
+            val southInitialProbabilities = listOf(Red withProbabilityOf 0.2, Green withProbabilityOf 0.2, Blue withProbabilityOf 0.6)
+
+            val westTrueModel = stateTransitionTable<Tile, Tile> {
+
+                Red resultsIn (Red withProbabilityOf 0.3)
+                Red resultsIn (Green withProbabilityOf 0.3)
+                Red resultsIn (Blue withProbabilityOf 0.4)
+
+                Green resultsIn (Red withProbabilityOf 0.3)
+                Green resultsIn (Green withProbabilityOf 0.4)
+                Green resultsIn (Blue withProbabilityOf 0.3)
+
+                Blue resultsIn (Red withProbabilityOf 0.4)
+                Blue resultsIn (Green withProbabilityOf 0.3)
+                Blue resultsIn (Blue withProbabilityOf 0.3)
+
+            }
+            val westInitialProbabilities = listOf(Red withProbabilityOf 0.3, Green withProbabilityOf 0.3, Blue withProbabilityOf 0.4)
+
+            val random = Random(4321L) // fixed seed in order to create reproducible results
+
+            When("we estimate the models of the provinces") {
+
+                val northEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(northInitialProbabilities, northTrueModel, random, 35200))
+                val eastEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(eastInitialProbabilities, eastTrueModel, random, 35200))
+                val southEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(southInitialProbabilities, southTrueModel, random, 35200))
+                val westEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(westInitialProbabilities, westTrueModel, random, 35200))
+
+                Then("the estimated north model produces the highest probability for a sequence created by the north province") {
+                    val north500ElementTestSequence = generateStateSequenceAccordingToModel(northInitialProbabilities, northTrueModel, random, 500)
+
+                    val northSequenceProbability = northEstimatedModel.sequenceProbability(north500ElementTestSequence)
+                    val eastSequenceProbability = eastEstimatedModel.sequenceProbability(north500ElementTestSequence)
+                    val southSequenceProbability = southEstimatedModel.sequenceProbability(north500ElementTestSequence)
+                    val westSequenceProbability = westEstimatedModel.sequenceProbability(north500ElementTestSequence)
+
+                    northSequenceProbability shouldBe gt(eastSequenceProbability)
+                    northSequenceProbability shouldBe gt(southSequenceProbability)
+                    northSequenceProbability shouldBe gt(westSequenceProbability)
+
+                    println(northSequenceProbability)
+                    println(eastSequenceProbability)
+                    println(southSequenceProbability)
+                    println(westSequenceProbability)
+
+                }
+            }
+        }
     }
+
 }
 

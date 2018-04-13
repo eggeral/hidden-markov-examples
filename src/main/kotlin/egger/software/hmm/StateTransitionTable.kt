@@ -61,7 +61,7 @@ fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(states: Li
     return result
 }
 
-fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(vararg states: TState): Double = this.sequenceProbability(*states)
+fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(vararg states: TState): Double = this.sequenceProbability(states.asList())
 
 fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransitionTable<TState, TState> {
 

@@ -158,10 +158,10 @@ class PlanetMedianExample : BehaviorSpec() {
                 Then("the estimated north model produces the highest probability for a sequence created by the north province") {
                     val north500ElementTestSequence = generateStateSequenceAccordingToModel(northInitialProbabilities, northTrueModel, random, 500)
 
-                    val northSequenceProbability = northEstimatedModel.sequenceProbability(north500ElementTestSequence)
-                    val eastSequenceProbability = eastEstimatedModel.sequenceProbability(north500ElementTestSequence)
-                    val southSequenceProbability = southEstimatedModel.sequenceProbability(north500ElementTestSequence)
-                    val westSequenceProbability = westEstimatedModel.sequenceProbability(north500ElementTestSequence)
+                    val northSequenceProbability = northEstimatedModel.sequenceLogLikelihood(north500ElementTestSequence)
+                    val eastSequenceProbability = eastEstimatedModel.sequenceLogLikelihood(north500ElementTestSequence)
+                    val southSequenceProbability = southEstimatedModel.sequenceLogLikelihood(north500ElementTestSequence)
+                    val westSequenceProbability = westEstimatedModel.sequenceLogLikelihood(north500ElementTestSequence)
 
                     northSequenceProbability shouldBe gt(eastSequenceProbability)
                     northSequenceProbability shouldBe gt(southSequenceProbability)

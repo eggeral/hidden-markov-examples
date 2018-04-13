@@ -85,7 +85,7 @@ class HiddenMarkovModelExample : BehaviorSpec() {
                             (caretakerTable.given(Foggy) probabilityOf NoUmbrella) *
                             (caretakerTable.given(Sunny) probabilityOf NoUmbrella) *
                             (1.0 / 3.0) * // sunny on the first day
-                            weatherTable.sequenceProbability(Sunny, Foggy, Sunny) shouldBe 0.00567.plusOrMinus(10E-9)
+                            weatherTable.sequenceLikelihood(Sunny, Foggy, Sunny) shouldBe 0.00567.plusOrMinus(10E-9)
 
                     // Another alternative
                     val hmm = HiddenMarkovModel(
@@ -94,6 +94,9 @@ class HiddenMarkovModelExample : BehaviorSpec() {
                             observationProbabilities = caretakerTable)
 
                     hmm.observing(NoUmbrella, NoUmbrella, NoUmbrella).startingWith(Sunny).likelihoodOf(Sunny, Foggy, Sunny) shouldBe 0.00567.plusOrMinus(10E-9)
+
+                    // Using log likelihood (needed for long sequences)
+                    hmm.observing(NoUmbrella, NoUmbrella, NoUmbrella).startingWith(Sunny).logLikelihoodOf(Sunny, Foggy, Sunny) shouldBe (-0.2464169411070934).plusOrMinus(10E-9)
                 }
 
             }

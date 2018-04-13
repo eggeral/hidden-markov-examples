@@ -1,5 +1,7 @@
 package egger.software.hmm
 
+import kotlin.math.log10
+
 data class StateWithProbability<out TState>(val state: TState, val probability: Double)
 
 class StateTransitionTable<TSourceState, TTargetState> {
@@ -45,7 +47,25 @@ infix fun <TState> Map<TState, Double>.probabilityOf(state: TState) = this[state
         ?: throw IllegalStateException("State: $state not found")
 
 
-fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(states: List<TState>): Double {
+fun <TState> StateTransitionTable<TState, TState>.sequenceLogLikelihood(states: List<TState>): Double {
+    var result = 1.0
+    var previous: TState? = null
+    for (state in states) {
+
+        if (previous != null) {
+            // Using Markov assumption!!
+            result += log10(given(previous) probabilityOf state)
+        }
+
+        previous = state
+
+    }
+    return result
+}
+
+fun <TState> StateTransitionTable<TState, TState>.sequenceLogLikelihood(vararg states: TState): Double = this.sequenceLogLikelihood(states.asList())
+
+fun <TState> StateTransitionTable<TState, TState>.sequenceLikelihood(states: List<TState>): Double {
     var result = 1.0
     var previous: TState? = null
     for (state in states) {
@@ -61,7 +81,7 @@ fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(states: Li
     return result
 }
 
-fun <TState> StateTransitionTable<TState, TState>.sequenceProbability(vararg states: TState): Double = this.sequenceProbability(states.asList())
+fun <TState> StateTransitionTable<TState, TState>.sequenceLikelihood(vararg states: TState): Double = this.sequenceLikelihood(states.asList())
 
 fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransitionTable<TState, TState> {
 

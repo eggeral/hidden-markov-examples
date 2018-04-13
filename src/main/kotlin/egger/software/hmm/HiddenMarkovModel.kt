@@ -1,5 +1,7 @@
 package egger.software.hmm
 
+import kotlin.math.log10
+
 
 class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<StateWithProbability<TState>>,
                                               val stateTransitions: StateTransitionTable<TState, TState>,
@@ -26,6 +28,16 @@ class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<St
 
     }
 
+    fun logLikelihoodOf(statesAndObservations: List<StateAndObservation<TState, TObservation>>): Double {
+
+        var result = 1.0
+        for (statesAndObservation in statesAndObservations) {
+            result += log10(observationProbabilities.given(statesAndObservation.state) probabilityOf statesAndObservation.observation)
+        }
+        return result
+
+    }
+
     val states get() = stateTransitions.sources
 
 }
@@ -44,9 +56,18 @@ fun <TState, TObservation> HiddenMarkovModelWithObservationsAndStartingProbabili
 
     if (states.size != observations.size) throw IllegalStateException("Number of observations has to match the number of states")
     val statesAndObservations = states.zip(observations).map { pair -> StateAndObservation(pair.first, pair.second) }
-    return hiddenMarkovModel.stateTransitions.sequenceProbability(*states) * hiddenMarkovModel.likelihoodOf(statesAndObservations) * startingProbability
+    return hiddenMarkovModel.stateTransitions.sequenceLikelihood(*states) * hiddenMarkovModel.likelihoodOf(statesAndObservations) * startingProbability
 
 }
+
+fun <TState, TObservation> HiddenMarkovModelWithObservationsAndStartingProbability<TState, TObservation>.logLikelihoodOf(vararg states: TState): Double {
+
+    if (states.size != observations.size) throw IllegalStateException("Number of observations has to match the number of states")
+    val statesAndObservations = states.zip(observations).map { pair -> StateAndObservation(pair.first, pair.second) }
+    return hiddenMarkovModel.stateTransitions.sequenceLogLikelihood(*states) + hiddenMarkovModel.logLikelihoodOf(statesAndObservations) + log10(startingProbability)
+
+}
+
 
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.observing(vararg observations: TObservation): HiddenMarkovModelWithObservations<TState, TObservation> =
         HiddenMarkovModelWithObservations(this, observations.asList())
@@ -101,7 +122,7 @@ val <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
         var mostLikelyStateSequence = listOf(pathEnding.state)
         var currentState = pathEnding.state
-        for (idx in observations.size-1 downTo 1) {
+        for (idx in observations.size - 1 downTo 1) {
             val previousState = psi[currentState]!![idx]!!
             mostLikelyStateSequence = listOf(previousState) + mostLikelyStateSequence
             currentState = previousState

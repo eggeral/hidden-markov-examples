@@ -86,10 +86,23 @@ class MarkovAssumptionExample : BehaviorSpec() {
                     probabilityOfFoggySunnyRainy + probabilityOfFoggyRainyRainy + probabilityOfFoggyFoggyRainy shouldBe 0.34.plusOrMinus(10E-9)
 
                     // Alternative calculation using state transition table function
-                    weatherTable.sequenceProbability(Foggy, Sunny, Rainy) +
-                            weatherTable.sequenceProbability(Foggy, Rainy, Rainy) +
-                            weatherTable.sequenceProbability(Foggy, Foggy, Rainy) shouldBe 0.34.plusOrMinus(10E-9)
+                    weatherTable.sequenceLikelihood(Foggy, Sunny, Rainy) +
+                            weatherTable.sequenceLikelihood(Foggy, Rainy, Rainy) +
+                            weatherTable.sequenceLikelihood(Foggy, Foggy, Rainy) shouldBe 0.34.plusOrMinus(10E-9)
                 }
+
+                Then("calculating the likelihood of long sequences leeds to float precision problems -> use log likelihood instead") {
+
+                    // 10.000 is indistinguishable of 100.000 if using the simple likelihood function
+                    weatherTable.sequenceLikelihood(List(10000, { Sunny })) shouldBe 1.0E-323.plusOrMinus(10E-324)
+                    weatherTable.sequenceLikelihood(List(100000, { Sunny })) shouldBe 1.0E-323.plusOrMinus(10E-324)
+
+                    // using log likelihood works better
+                    weatherTable.sequenceLogLikelihood(List(10000, { Sunny })) shouldBe (-968.0).plusOrMinus(10E-1)
+                    weatherTable.sequenceLogLikelihood(List(100000, { Sunny })) shouldBe (-9689.9).plusOrMinus(10E-1)
+
+                }
+
             }
         }
     }

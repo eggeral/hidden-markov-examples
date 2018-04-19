@@ -38,6 +38,10 @@ class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<St
 
     }
 
+    fun forwardAlgorithm(): Double {
+        return 0.0
+    }
+
     val states get() = stateTransitions.sources
 
 }
@@ -69,6 +73,40 @@ fun <TState, TObservation> HiddenMarkovModelWithObservationsAndStartingProbabili
 }
 
 
+fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfObservedSequence(): Double {
+
+    // "forward" algorithm
+
+    var alpha = mutableMapOf<TState, Double>()
+
+    // Initialization
+    for (state in hiddenMarkovModel.states) {
+        val pi = hiddenMarkovModel.startingProbabilityOf(state)
+        val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observations[0]
+        alpha[state] = pi * b
+    }
+
+
+    for (observation in observations.drop(1)) {
+        val previousAlpha = alpha
+        alpha = mutableMapOf()
+
+        for (state in hiddenMarkovModel.states) {
+            val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observation
+
+            var incomingSum = 0.0
+            for (incomingState in hiddenMarkovModel.states) {
+                incomingSum += (hiddenMarkovModel.stateTransitions.given(incomingState) probabilityOf state) * previousAlpha[incomingState]!!
+            }
+            alpha[state] = incomingSum * b
+        }
+
+    }
+    return alpha.values.sum()
+
+}
+
+
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.observing(vararg observations: TObservation): HiddenMarkovModelWithObservations<TState, TObservation> =
         HiddenMarkovModelWithObservations(this, observations.asList())
 
@@ -88,13 +126,13 @@ val <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
         val delta = mutableMapOf<TState, MutableList<Double>>()
         val psi = mutableMapOf<TState, MutableList<TState?>>()
 
-        for (weather in hiddenMarkovModel.states) {
+        for (state in hiddenMarkovModel.states) {
 
-            val pi = hiddenMarkovModel.startingProbabilityOf(weather)
-            val b = hiddenMarkovModel.observationProbabilities.given(weather) probabilityOf observations[0]
+            val pi = hiddenMarkovModel.startingProbabilityOf(state)
+            val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observations[0]
 
-            delta[weather] = mutableListOf(pi * b)
-            psi[weather] = mutableListOf<TState?>(null)
+            delta[state] = mutableListOf(pi * b)
+            psi[state] = mutableListOf<TState?>(null)
 
         }
 

@@ -38,10 +38,6 @@ class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<St
 
     }
 
-    fun forwardAlgorithm(): Double {
-        return 0.0
-    }
-
     val states get() = stateTransitions.sources
 
 }
@@ -72,49 +68,89 @@ fun <TState, TObservation> HiddenMarkovModelWithObservationsAndStartingProbabili
 
 }
 
+data class ForwardBackwardCalculationResult<TState>(val forward: List<Map<TState, Double>>, val backward: List<Map<TState, Double>>) {
+    override fun toString(): String {
+        return "ForwardBackwardCalculationResult(\n  forward=$forward,\n  backward=$backward\n)"
+    }
+}
 
-data class AlphaCalculationResult<TState>(val alpha: List<Map<TState, Double>>, val scaling: List<Double>)
+fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.calculateForwardBackward(): ForwardBackwardCalculationResult<TState> {
 
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.alpha(): AlphaCalculationResult<TState> {
-
-    val alpha = mutableListOf<Map<TState, Double>>()
+    // forward
+    val forward = mutableListOf<Map<TState, Double>>()
     val scaling = mutableListOf<Double>()
 
-    // Initialization
-    var currentAlphaColumn = mutableMapOf<TState, Double>()
+    // initialization
+    var currentForwardColumn = mutableMapOf<TState, Double>()
     for (state in hiddenMarkovModel.states) {
         val pi = hiddenMarkovModel.startingProbabilityOf(state)
         val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observations[0]
-        currentAlphaColumn[state] = pi * b
+        currentForwardColumn[state] = pi * b
     }
-    var currentScale =  1.0/currentAlphaColumn.values.sum()
+    var currentScale = 1.0 / currentForwardColumn.values.sum()
     scaling.add(currentScale)
-    alpha.add(currentAlphaColumn.mapValues { entry -> entry.value * currentScale })
+    forward.add(currentForwardColumn.mapValues { entry -> entry.value * currentScale })
+    //forward.add(currentForwardColumn)
 
-
+    // iteration
     for (observation in observations.drop(1)) {
-        val previousAlphaColumn = currentAlphaColumn
-        currentAlphaColumn = mutableMapOf()
+        // TODO this uses the unscaled forward column! shouldn't this be the scaled one?
+        val previousForwardColumn = currentForwardColumn
+        currentForwardColumn = mutableMapOf()
 
         for (state in hiddenMarkovModel.states) {
             val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observation
 
             var incomingSum = 0.0
             for (incomingState in hiddenMarkovModel.states) {
-                incomingSum += (hiddenMarkovModel.stateTransitions.given(incomingState) probabilityOf state) * previousAlphaColumn[incomingState]!!
+                incomingSum += (hiddenMarkovModel.stateTransitions.given(incomingState) probabilityOf state) * previousForwardColumn[incomingState]!!
             }
-            currentAlphaColumn[state] = incomingSum * b
+            currentForwardColumn[state] = incomingSum * b
         }
 
-        currentScale =  1.0/currentAlphaColumn.values.sum()
+        currentScale = 1.0 / currentForwardColumn.values.sum()
         scaling.add(currentScale)
-        alpha.add(currentAlphaColumn.mapValues { entry -> entry.value * currentScale })
+        forward.add(currentForwardColumn.mapValues { entry -> entry.value * currentScale })
+        //forward.add(currentForwardColumn)
 
     }
-    return AlphaCalculationResult(alpha, scaling)
+
+    // backward
+    val backward = mutableListOf<Map<TState, Double>>()
+
+    // initialization
+    var currentBackwardColumn = mutableMapOf<TState, Double>()
+    for (state in hiddenMarkovModel.states) {
+        currentBackwardColumn[state] = 1.0
+    }
+    backward.add(0, currentBackwardColumn)
+
+    // iteration
+    for (observation in observations.asReversed()) {
+
+        val previousBackwardColumn = backward.first()
+        currentBackwardColumn = mutableMapOf()
+
+        for (state in hiddenMarkovModel.states) {
+
+            var targetSum = 0.0
+            for (targetState in hiddenMarkovModel.states) {
+                targetSum += (hiddenMarkovModel.stateTransitions.given(state) probabilityOf targetState) *
+                        (hiddenMarkovModel.observationProbabilities.given(targetState) probabilityOf observation) *
+                        previousBackwardColumn[targetState]!!
+            }
+            currentBackwardColumn[state] = targetSum
+
+        }
+
+        val scale = 1.0 / currentBackwardColumn.values.sum()
+        backward.add(0, currentBackwardColumn.mapValues { entry -> entry.value * scale })
+
+    }
+
+    return ForwardBackwardCalculationResult(forward, backward)
 
 }
-
 
 fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfObservedSequence(): Double {
 

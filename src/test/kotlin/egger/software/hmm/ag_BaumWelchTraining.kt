@@ -86,22 +86,37 @@ class BaumWelchExamples : BehaviorSpec() {
                     val result = hmm.observing("umbrella", "umbrella", "no umbrella", "umbrella", "umbrella").calculateForwardBackward()
 
                     result.forward shouldBe listOf(
+
+                            mapOf("Rain" to 0.5, "No Rain" to 0.5),
                             mapOf("Rain" to 0.8181818181818181, "No Rain" to 0.18181818181818182),
-                            mapOf("Rain" to 0.883357041251778, "No Rain" to 0.11664295874822192),
-                            mapOf("Rain" to 0.19066793972352525, "No Rain" to 0.8093320602764749),
-                            mapOf("Rain" to 0.730794004584982, "No Rain" to 0.26920599541501794),
-                            mapOf("Rain" to 0.8673388895754847, "No Rain" to 0.13266111042451528)
+                            mapOf("Rain" to 0.883357041251778, "No Rain" to 0.1166429587482219),
+                            mapOf("Rain" to 0.19066793972352528, "No Rain" to 0.8093320602764746),
+                            mapOf("Rain" to 0.7307940045849821, "No Rain" to 0.2692059954150179),
+                            mapOf("Rain" to 0.8673388895754848, "No Rain" to 0.13266111042451528)
+
                     )
 
                     result.backward shouldBe listOf(
+
                             mapOf("Rain" to 0.6469355558301939, "No Rain" to 0.35306444416980615),
                             mapOf("Rain" to 0.5923176018339928, "No Rain" to 0.4076823981660072),
                             mapOf("Rain" to 0.37626717588941017, "No Rain" to 0.62373282411059),
                             mapOf("Rain" to 0.6533428165007112, "No Rain" to 0.34665718349928876),
                             mapOf("Rain" to 0.6272727272727272, "No Rain" to 0.37272727272727274),
                             mapOf("Rain" to 1.0, "No Rain" to 1.0)
+
                     )
 
+                    result.posterior shouldBe listOf(
+
+                            mapOf("Rain" to 0.6469355558301939, "No Rain" to 0.35306444416980615),
+                            mapOf("Rain" to 0.8673388895754847, "No Rain" to 0.13266111042451528),
+                            mapOf("Rain" to 0.8204190536236753, "No Rain" to 0.17958094637632457),
+                            mapOf("Rain" to 0.3074835760066178, "No Rain" to 0.6925164239933822),
+                            mapOf("Rain" to 0.8204190536236754, "No Rain" to 0.1795809463763246),
+                            mapOf("Rain" to 0.8673388895754848, "No Rain" to 0.13266111042451528)
+
+                    )
                 }
 
             }
@@ -161,17 +176,29 @@ class BaumWelchExamples : BehaviorSpec() {
                     // the results to 1.0
                     result.forward shouldBe listOf(
 
-                            mapOf("Healthy" to 0.8823529411764707, "Fever" to 0.11764705882352944, "E" to 0.0),
-                            mapOf("Healthy" to 0.7235561323815705, "Fever" to 0.2764438676184296, "E" to 0.0),
-                            mapOf("Healthy" to 0.21095270484130565, "Fever" to 0.7890472951586943, "E" to 0.0)
+                            mapOf("Healthy" to 0.6, "Fever" to 0.4, "E" to 0.0),
+                            mapOf("Healthy" to 0.8734023128423616, "Fever" to 0.12659768715763847, "E" to 0.0),
+                            mapOf("Healthy" to 0.7212089244858947, "Fever" to 0.27879107551410537, "E" to 0.0),
+                            mapOf("Healthy" to 0.21046945045773016, "Fever" to 0.7895305495422698, "E" to 0.0)
 
                     )
 
                     result.backward shouldBe listOf(
+
                             mapOf("Healthy" to 0.58964700106513, "Fever" to 0.41035299893487, "E" to 0.0),
                             mapOf("Healthy" to 0.4873831644539253, "Fever" to 0.5126168355460746, "E" to 0.0),
                             mapOf("Healthy" to 0.38724727838258166, "Fever" to 0.6127527216174183, "E" to 0.0),
                             mapOf("Healthy" to 1.0, "Fever" to 1.0, "E" to 1.0)
+
+                    )
+
+                    result.posterior shouldBe listOf(
+
+                            mapOf("Healthy" to 0.6830819036215434, "Fever" to 0.31691809637845664, "E" to 0.0),
+                            mapOf("Healthy" to 0.8677149261924796, "Fever" to 0.1322850738075203, "E" to 0.0),
+                            mapOf("Healthy" to 0.6204757869851432, "Fever" to 0.3795242130148568, "E" to 0.0),
+                            mapOf("Healthy" to 0.21046945045773022, "Fever" to 0.78953054954227, "E" to 0.0)
+
                     )
                 }
 

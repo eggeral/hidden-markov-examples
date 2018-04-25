@@ -68,9 +68,9 @@ fun <TState, TObservation> HiddenMarkovModelWithObservationsAndStartingProbabili
 
 }
 
-data class ForwardBackwardCalculationResult<TState>(val forward: List<Map<TState, Double>>, val backward: List<Map<TState, Double>>) {
+data class ForwardBackwardCalculationResult<TState>(val forward: List<Map<TState, Double>>, val backward: List<Map<TState, Double>>, val posterior: List<Map<TState, Double>> ) {
     override fun toString(): String {
-        return "ForwardBackwardCalculationResult(\n  forward=$forward,\n  backward=$backward\n)"
+        return "ForwardBackwardCalculationResult(\n  forward=$forward,\n  backward=$backward, \n  posterior=$posterior\n)"
     }
 }
 
@@ -78,24 +78,18 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
     // forward
     val forward = mutableListOf<Map<TState, Double>>()
-    val scaling = mutableListOf<Double>()
 
     // initialization
+
     var currentForwardColumn = mutableMapOf<TState, Double>()
     for (state in hiddenMarkovModel.states) {
-        val pi = hiddenMarkovModel.startingProbabilityOf(state)
-        val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observations[0]
-        currentForwardColumn[state] = pi * b
+        currentForwardColumn[state] = hiddenMarkovModel.startingProbabilityOf(state)
     }
-    var currentScale = 1.0 / currentForwardColumn.values.sum()
-    scaling.add(currentScale)
-    forward.add(currentForwardColumn.mapValues { entry -> entry.value * currentScale })
-    //forward.add(currentForwardColumn)
+    forward.add(currentForwardColumn)
 
     // iteration
-    for (observation in observations.drop(1)) {
-        // TODO this uses the unscaled forward column! shouldn't this be the scaled one?
-        val previousForwardColumn = currentForwardColumn
+    for (observation in observations) {
+        val previousForwardColumn = forward.last()
         currentForwardColumn = mutableMapOf()
 
         for (state in hiddenMarkovModel.states) {
@@ -108,10 +102,8 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
             currentForwardColumn[state] = incomingSum * b
         }
 
-        currentScale = 1.0 / currentForwardColumn.values.sum()
-        scaling.add(currentScale)
-        forward.add(currentForwardColumn.mapValues { entry -> entry.value * currentScale })
-        //forward.add(currentForwardColumn)
+        val scale = 1.0 / currentForwardColumn.values.sum()
+        forward.add(currentForwardColumn.mapValues { entry -> entry.value * scale })
 
     }
 
@@ -123,6 +115,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
     for (state in hiddenMarkovModel.states) {
         currentBackwardColumn[state] = 1.0
     }
+    // ??? this is not normalized to 1.0 as the other entries. Is this correct?
     backward.add(0, currentBackwardColumn)
 
     // iteration
@@ -148,7 +141,20 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
     }
 
-    return ForwardBackwardCalculationResult(forward, backward)
+    val posterior = mutableListOf<Map<TState, Double>>()
+
+    for (idx in 0 .. observations.size) {
+        val currentPosteriorColumn = mutableMapOf<TState, Double>()
+
+        for (state in hiddenMarkovModel.states) {
+            currentPosteriorColumn[state] = forward[idx][state]!! * backward[idx][state]!!
+        }
+
+        val scale = 1.0 / currentPosteriorColumn.values.sum()
+        posterior.add(currentPosteriorColumn.mapValues { entry -> entry.value * scale })
+    }
+
+    return ForwardBackwardCalculationResult(forward, backward, posterior)
 
 }
 

@@ -40,3 +40,10 @@ fun <TState> generateStateSequenceAccordingToModel(
 
     return stateList
 }
+
+val <TState> List<StateWithProbability<TState>>.asNormalized: List<StateWithProbability<TState>>
+    get() {
+        val sum = this.sumByDouble { it.probability }
+        return this.map { StateWithProbability(it.state, it.probability / sum) }
+    }
+

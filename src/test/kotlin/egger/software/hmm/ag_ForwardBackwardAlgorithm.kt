@@ -5,7 +5,7 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.BehaviorSpec
 
 
-class BaumWelchExamples : BehaviorSpec() {
+class ForwardBackwardExamples : BehaviorSpec() {
 
     init {
         // The following examples are described in:

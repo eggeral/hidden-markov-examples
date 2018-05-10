@@ -9,20 +9,37 @@ class StateTransitionTable<TSourceState, TTargetState> {
     private var sourceToTargets = mutableMapOf<TSourceState, MutableMap<TTargetState, Double>>()
 
     val sources get() = sourceToTargets.keys
-    private val targets = mutableListOf<TTargetState>()
+    val targets = mutableListOf<TTargetState>()
 
-    infix fun TSourceState.resultsIn(targetWithProbability: StateWithProbability<TTargetState>) {
+    val asNormalized: StateTransitionTable<TSourceState, TTargetState>
+        get() {
 
-        var targetForSource = sourceToTargets[this]
-        if (targetForSource == null) {
-            targetForSource = mutableMapOf()
-            sourceToTargets[this] = targetForSource
+            val normalized = stateTransitionTable<TSourceState, TTargetState> {}
+
+            for (transitions in sourceToTargets) {
+                val sum = transitions.value.entries.sumByDouble { it.value }
+                transitions.value.entries.forEach {
+                    normalized.addTransition(transitions.key, (it.key withProbabilityOf it.value / sum))
+                }
+            }
+            return normalized
+
         }
-        targetForSource[targetWithProbability.state] = targetWithProbability.probability
+
+     fun addTransition(sourceState: TSourceState, targetWithProbability: StateWithProbability<TTargetState>) {
+
+        var targetsForSource = sourceToTargets[sourceState]
+        if (targetsForSource == null) {
+            targetsForSource = mutableMapOf()
+            sourceToTargets[sourceState] = targetsForSource
+        }
+        targetsForSource[targetWithProbability.state] = targetWithProbability.probability
 
         targets.add(targetWithProbability.state)
 
     }
+
+    infix fun TSourceState.resultsIn(targetWithProbability: StateWithProbability<TTargetState>) = addTransition(this, targetWithProbability)
 
     fun given(state: TSourceState): Map<TTargetState, Double> = sourceToTargets[state]
             ?: throw IllegalStateException("State: $state not found")
@@ -30,8 +47,20 @@ class StateTransitionTable<TSourceState, TTargetState> {
     fun observationsOf(state: TSourceState): List<StateWithProbability<TTargetState>> =
             given(state).entries.map { entry -> StateWithProbability(entry.key, entry.value) }
 
+
     override fun toString(): String {
-        return "$sourceToTargets"
+        val stringBuilder = StringBuilder()
+
+        for (source in sources) {
+            stringBuilder.append("$source -> [ ")
+            for (target in sourceToTargets[source]!!.entries)
+                stringBuilder.append("'${target.key}':(${target.value}), ")
+
+            stringBuilder.append(" ]\n")
+        }
+
+        return stringBuilder.toString()
+
     }
 
 }
@@ -109,5 +138,5 @@ fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransit
 
     }
 
-
 }
+

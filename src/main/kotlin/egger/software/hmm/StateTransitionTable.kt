@@ -44,7 +44,7 @@ class StateTransitionTable<TSourceState, TTargetState> {
     fun given(state: TSourceState): Map<TTargetState, Double> = sourceToTargets[state]
             ?: throw IllegalStateException("State: $state not found")
 
-    fun observationsOf(state: TSourceState): List<StateWithProbability<TTargetState>> =
+    fun transitionsAwayFrom(state: TSourceState): List<StateWithProbability<TTargetState>> =
             given(state).entries.map { entry -> StateWithProbability(entry.key, entry.value) }
 
 

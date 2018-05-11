@@ -63,6 +63,10 @@ class BaumWelchExamples : BehaviorSpec() {
                         currentLikelihood = newLikelihood
                     }
                     println(hmm)
+                    val random = Random()
+                    for (count in 1..10) {
+                        println(hmm.generateObservationSequenceAccordingToModel(random, 4))
+                    }
                 }
 
             }
@@ -131,12 +135,7 @@ class BaumWelchExamples : BehaviorSpec() {
 
                     val random = Random()
                     for (count in 1..10) {
-                        println(generateStateSequenceAccordingToModel(
-                                hmm.initialStateProbabilities,
-                                hmm.stateTransitions,
-                                random,
-                                2
-                        ))
+                        println(hmm.generateObservationSequenceAccordingToModel(random, 2))
                     }
                 }
 

@@ -25,6 +25,20 @@ fun <TState> Iterable<StateWithProbability<TState>>.selectStateAtOffset(offset: 
 
 }
 
+fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.generateObservationSequenceAccordingToModel(random: Random, numberOfObservations: Int): List<TObservation> {
+
+    val observationList = mutableListOf<TObservation>()
+    var state = this.initialStateProbabilities.selectStateAtOffset(random.nextDouble())
+
+    for (count in 0 until numberOfObservations) {
+        observationList.add(this.observationProbabilities.transitionsAwayFrom(state).selectStateAtOffset(random.nextDouble()))
+        state = this.stateTransitions.transitionsAwayFrom(state).selectStateAtOffset(random.nextDouble())
+    }
+
+    return observationList
+}
+
+
 fun <TState> generateStateSequenceAccordingToModel(
         initialStateProbabilities: List<StateWithProbability<TState>>,
         stateTransitionTable: StateTransitionTable<TState, TState>, random: Random, numberOfStates: Int): List<TState> {
@@ -34,7 +48,7 @@ fun <TState> generateStateSequenceAccordingToModel(
     stateList.add(state)
 
     for (count in 1 until numberOfStates) {
-        state = stateTransitionTable.observationsOf(state).selectStateAtOffset(random.nextDouble())
+        state = stateTransitionTable.transitionsAwayFrom(state).selectStateAtOffset(random.nextDouble())
         stateList.add(state)
     }
 

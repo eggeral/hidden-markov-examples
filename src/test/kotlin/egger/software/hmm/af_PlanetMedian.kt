@@ -167,11 +167,6 @@ class PlanetMedianExample : BehaviorSpec() {
                     northSequenceProbability shouldBe gt(southSequenceProbability)
                     northSequenceProbability shouldBe gt(westSequenceProbability)
 
-                    println(northSequenceProbability)
-                    println(eastSequenceProbability)
-                    println(southSequenceProbability)
-                    println(westSequenceProbability)
-
                 }
             }
         }

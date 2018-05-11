@@ -3,7 +3,7 @@ package egger.software.hmm
 import kotlin.math.log10
 
 
-class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<StateWithProbability<TState>>,
+class HiddenMarkovModel<TState, TObservation>(val initialStateProbabilities: List<StateWithProbability<TState>>,
                                               val stateTransitions: StateTransitionTable<TState, TState>,
                                               val observationProbabilities: StateTransitionTable<TState, TObservation>) {
 
@@ -40,7 +40,7 @@ class HiddenMarkovModel<TState, TObservation>(initialStateProbabilities: List<St
 
     val states get() = stateTransitions.sources
 
-    val emissions get() = observationProbabilities.targets
+    val observations get() = observationProbabilities.targets
 
     override fun toString(): String {
         val result = StringBuilder()
@@ -177,6 +177,14 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
 }
 
+fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.totalLogLikelyHood(observationsList: List<List<TObservation>>): Double {
+    var result = 0.0
+    for (observation in observationsList) {
+        val probabilityOfObservedSequence = this.observing(observation).probabilityOfObservedSequence()
+        result += log10(this.observing(observation).probabilityOfObservedSequence())
+    }
+    return result
+}
 
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepUsingSimpleBaumWelch(observationsList: List<List<TObservation>>): HiddenMarkovModel<TState, TObservation> {
 
@@ -205,16 +213,15 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
     }
 
     val newEmissionProbabilities = stateTransitionTable<TState, TObservation> {}
-    val uniqueObservations = observationsList.flatten().distinct()
 
     for (sourceState in this.states) {
         var overallDeltaSum = 0.0
         val deltaSumPerTargetObservation = mutableMapOf<TObservation, Double>()
-        for (targetObservation in uniqueObservations) {
+        for (targetObservation in this.observations) {
             // probability of seeing targetObservation in state sourceState
             var targetObservationDeltaSum = 0.0
             for (observation in observationsList) {
-                for (time in 1 .. observation.size) {
+                for (time in 1..observation.size) {
                     val prefix = observation.take(time)
                     if (prefix.last() != targetObservation) {
                         continue
@@ -228,7 +235,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
             overallDeltaSum += targetObservationDeltaSum
         }
 
-        for (targetObservation in uniqueObservations) {
+        for (targetObservation in this.observations) {
             newEmissionProbabilities.addTransition(sourceState, targetObservation withProbabilityOf (deltaSumPerTargetObservation[targetObservation]!! / overallDeltaSum))
         }
     }

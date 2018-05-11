@@ -8,8 +8,8 @@ class StateTransitionTable<TSourceState, TTargetState> {
 
     private var sourceToTargets = mutableMapOf<TSourceState, MutableMap<TTargetState, Double>>()
 
-    val sources get() = sourceToTargets.keys
-    val targets = mutableListOf<TTargetState>()
+    val sources = sourceToTargets.keys
+    val targets = mutableSetOf<TTargetState>()
 
     val asNormalized: StateTransitionTable<TSourceState, TTargetState>
         get() {
@@ -26,7 +26,7 @@ class StateTransitionTable<TSourceState, TTargetState> {
 
         }
 
-     fun addTransition(sourceState: TSourceState, targetWithProbability: StateWithProbability<TTargetState>) {
+    fun addTransition(sourceState: TSourceState, targetWithProbability: StateWithProbability<TTargetState>) {
 
         var targetsForSource = sourceToTargets[sourceState]
         if (targetsForSource == null) {
@@ -53,9 +53,7 @@ class StateTransitionTable<TSourceState, TTargetState> {
 
         for (source in sources) {
             stringBuilder.append("$source -> [ ")
-            for (target in sourceToTargets[source]!!.entries)
-                stringBuilder.append("'${target.key}':(${target.value}), ")
-
+            stringBuilder.append(sourceToTargets[source]!!.entries.map { target -> "'${target.key}':(${target.value})" }.joinToString())
             stringBuilder.append(" ]\n")
         }
 

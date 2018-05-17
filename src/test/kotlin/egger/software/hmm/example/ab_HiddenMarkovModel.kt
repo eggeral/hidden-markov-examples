@@ -1,8 +1,11 @@
-package egger.software.hmm
+package egger.software.hmm.example
 
-import egger.software.hmm.Caretaker.NoUmbrella
-import egger.software.hmm.Caretaker.Umbrella
-import egger.software.hmm.Weather.*
+import egger.software.hmm.*
+import egger.software.hmm.state.Caretaker
+import egger.software.hmm.state.Caretaker.NoUmbrella
+import egger.software.hmm.state.Caretaker.Umbrella
+import egger.software.hmm.state.Weather
+import egger.software.hmm.state.Weather.*
 import io.kotlintest.matchers.plusOrMinus
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.BehaviorSpec

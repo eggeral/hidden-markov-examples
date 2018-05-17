@@ -15,8 +15,6 @@ fun <TState> Iterable<StateWithProbability<TState>>.selectStateAtOffset(offset: 
         statesSortedWithAccumulatedProbability.add(StateWithProbability(it.state, sum))
     }
 
-    require(statesSortedWithAccumulatedProbability.last().probability == 1.0, { "Probabilities have to sum up to 1.0 but was ${statesSortedWithAccumulatedProbability.last().probability}" })
-
     for (stateWithProbability in statesSortedWithAccumulatedProbability) {
         if (offset < stateWithProbability.probability)
             return stateWithProbability.state
@@ -61,3 +59,4 @@ val <TState> List<StateWithProbability<TState>>.asNormalized: List<StateWithProb
         return this.map { StateWithProbability(it.state, it.probability / sum) }
     }
 
+fun <TKey, TValue> MutableMap<TKey, TValue>.initUsing(keys: Set<TKey>, value: TValue) = this.apply { keys.forEach { set(it, value) } }

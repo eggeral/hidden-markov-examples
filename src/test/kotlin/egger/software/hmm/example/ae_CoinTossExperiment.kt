@@ -1,9 +1,13 @@
-package egger.software.hmm
+package egger.software.hmm.example
 
-import egger.software.hmm.Coin.Fair
-import egger.software.hmm.Coin.UnFair
-import egger.software.hmm.Toss.Heads
-import egger.software.hmm.Toss.Tails
+import egger.software.hmm.*
+import egger.software.hmm.algorithm.mostLikelyStateSequence
+import egger.software.hmm.state.Coin
+import egger.software.hmm.state.Coin.Fair
+import egger.software.hmm.state.Coin.UnFair
+import egger.software.hmm.state.Toss
+import egger.software.hmm.state.Toss.Heads
+import egger.software.hmm.state.Toss.Tails
 import java.util.*
 
 data class MasterData(val probabilityOfChangingCoins: Double,

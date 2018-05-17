@@ -1,81 +1,39 @@
 package egger.software.hmm
 
-import egger.software.hmm.Tile.*
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldThrow
-import io.kotlintest.specs.BehaviorSpec
+import egger.software.hmm.state.Tile.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Test
+import org.junit.jupiter.api.assertThrows
+import org.hamcrest.CoreMatchers.`is` as isEqualTo
 
 
-class UtilsSpec : BehaviorSpec() {
+class UtilsSpec {
 
-    init {
-        Given("a list of StateWithProbability") {
-            val statesWithProbability = listOf(Red withProbabilityOf 0.2, Green withProbabilityOf 0.6, Blue withProbabilityOf 0.2)
+    @Test
+    fun `from a list of StateWithProbability an element with a given offset can be picked`() {
 
-            When("the element with offset 0.5 is picked") {
-                val picked = statesWithProbability.selectStateAtOffset(0.5)
+        val statesWithProbability = listOf(Red withProbabilityOf 0.2, Green withProbabilityOf 0.6, Blue withProbabilityOf 0.2)
 
-                Then("Green is returned") {
-                    picked shouldBe Green
-                }
-            }
+        assertThat(statesWithProbability.selectStateAtOffset(0.5), isEqualTo(Green))
+        assertThat(statesWithProbability.selectStateAtOffset(0.1), isEqualTo(Red))
+        assertThat(statesWithProbability.selectStateAtOffset(0.0), isEqualTo(Red))
+        assertThat(statesWithProbability.selectStateAtOffset(0.3), isEqualTo(Blue))
+        assertThat(statesWithProbability.selectStateAtOffset(0.4), isEqualTo(Green))
 
-            When("the element with offset 0.1 is picked") {
-                val picked = statesWithProbability.selectStateAtOffset(0.1)
+        assertThrows<IllegalArgumentException> { statesWithProbability.selectStateAtOffset(-0.1) }
+        assertThrows<IllegalArgumentException> { statesWithProbability.selectStateAtOffset(1.0) }
 
-                Then("Red is returned") {
-                    picked shouldBe Red
-                }
-            }
-
-            When("the element with offset 0.0 is picked") {
-                val picked = statesWithProbability.selectStateAtOffset(0.0)
-
-                Then("Red is returned") {
-                    picked shouldBe Red
-                }
-            }
-
-            When("the element with offset 0.3 is picked") {
-                val picked = statesWithProbability.selectStateAtOffset(0.3)
-
-                Then("Blue is returned") {
-                    picked shouldBe Blue
-                }
-            }
-
-            When("the element with offset 0.4 is picked") {
-                val picked = statesWithProbability.selectStateAtOffset(0.4)
-
-                Then("Green is returned") {
-                    picked shouldBe Green
-                }
-            }
-
-            When("the element with offset below 0.0 is picked") {
-
-                Then("an exception is thrown") {
-                    shouldThrow<IllegalArgumentException> { statesWithProbability.selectStateAtOffset(-0.1) }
-                }
-            }
-
-            When("the element with offset larger or equal to 0.0 is picked") {
-
-                Then("an exception is thrown") {
-                    shouldThrow<IllegalArgumentException> { statesWithProbability.selectStateAtOffset(1.0) }
-                }
-            }
-
-        }
-
-        Given("a list of StateWithProbability") {
-            val statesWithProbability = listOf(Red withProbabilityOf 0.2, Green withProbabilityOf 0.8, Blue withProbabilityOf 0.2)
-            When("the probabilities do not sum up to 1.0") {
-                Then("an exception is thrown") {
-                    shouldThrow<IllegalArgumentException> { statesWithProbability.selectStateAtOffset(0.5) }
-                }
-            }
-
-        }
     }
+
+    @Test
+    fun `mutable maps can be initialized with default values for a given set of keys`() {
+
+        assertThat(mutableMapOf<String, Int>().initUsing(setOf("A", "B"), 1), isEqualTo(
+                mutableMapOf(
+                        "A" to 1,
+                        "B" to 1
+                )))
+
+    }
+
 }

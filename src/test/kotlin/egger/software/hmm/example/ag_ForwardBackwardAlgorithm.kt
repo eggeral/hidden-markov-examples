@@ -1,5 +1,6 @@
-package egger.software.hmm
+package egger.software.hmm.example
 
+import egger.software.hmm.*
 import io.kotlintest.matchers.plusOrMinus
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.BehaviorSpec

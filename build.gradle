@@ -25,7 +25,22 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     testCompile "io.kotlintest:kotlintest:2.0.7"
+    testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+    testCompile 'org.hamcrest:hamcrest-junit:2.0.0.0'
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
 
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+
+    reports {
+        html.enabled = true
+    }
 }
 
 compileKotlin {

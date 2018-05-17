@@ -61,6 +61,21 @@ class StateTransitionTable<TSourceState, TTargetState> {
 
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as StateTransitionTable<*, *>
+
+        if (sourceToTargets != other.sourceToTargets) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return sourceToTargets.hashCode()
+    }
+
 }
 
 fun <TSourceState, TTargetState> stateTransitionTable(init: StateTransitionTable<TSourceState, TTargetState>.() -> Unit): StateTransitionTable<TSourceState, TTargetState> {
@@ -124,7 +139,7 @@ fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransit
 
     }
 
-    return stateTransitionTable<TState, TState> {
+    return stateTransitionTable {
 
         for (state in states) {
             val counts = requireNotNull(stateCounts[state])

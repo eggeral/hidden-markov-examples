@@ -1,6 +1,8 @@
-package egger.software.hmm
+package egger.software.hmm.example
 
-import egger.software.hmm.Tile.*
+import egger.software.hmm.*
+import egger.software.hmm.state.Tile
+import egger.software.hmm.state.Tile.*
 import io.kotlintest.matchers.gt
 import io.kotlintest.matchers.plusOrMinus
 import io.kotlintest.matchers.shouldBe

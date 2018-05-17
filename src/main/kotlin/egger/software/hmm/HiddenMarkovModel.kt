@@ -1,5 +1,7 @@
 package egger.software.hmm
 
+import egger.software.hmm.algorithm.alpha
+import kotlin.math.ln
 import kotlin.math.log10
 
 
@@ -178,208 +180,17 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 }
 
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.totalLogLikelyHood(observationsList: List<List<TObservation>>): Double {
+
     var result = 0.0
     for (observation in observationsList) {
-        val probabilityOfObservedSequence = this.observing(observation).probabilityOfObservedSequence()
-        result += log10(this.observing(observation).probabilityOfObservedSequence())
+        result += ln(this.observing(observation).probabilityOfObservedSequence())
     }
     return result
-}
-
-fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepUsingSimpleBaumWelch(observationsList: List<List<TObservation>>): HiddenMarkovModel<TState, TObservation> {
-
-    val newTransitionProbabilities = stateTransitionTable<TState, TState> {}
-    for (sourceState in this.states) {
-        var overallGammaSum = 0.0
-        val gammaSumPerTargetState = mutableMapOf<TState, Double>()
-        for (targetState in this.states) {
-
-            var targetStateGammaSum = 0.0
-            for (observation in observationsList) {
-                for (time in 1 until observation.size) {
-                    val prefix = observation.take(time)
-                    val suffix = observation.subList(time, observation.size)
-                    val gammaValue = gamma(prefix, suffix).given(sourceState) probabilityOf targetState
-                    targetStateGammaSum += gammaValue
-                }
-            }
-            gammaSumPerTargetState[targetState] = targetStateGammaSum
-            overallGammaSum += targetStateGammaSum
-        }
-
-        for (targetState in this.states) {
-            newTransitionProbabilities.addTransition(sourceState, targetState withProbabilityOf (gammaSumPerTargetState[targetState]!! / overallGammaSum))
-        }
-    }
-
-    val newEmissionProbabilities = stateTransitionTable<TState, TObservation> {}
-
-    for (sourceState in this.states) {
-        var overallDeltaSum = 0.0
-        val deltaSumPerTargetObservation = mutableMapOf<TObservation, Double>()
-        for (targetObservation in this.observations) {
-            // probability of seeing targetObservation in state sourceState
-            var targetObservationDeltaSum = 0.0
-            for (observation in observationsList) {
-                for (time in 1..observation.size) {
-                    val prefix = observation.take(time)
-                    if (prefix.last() != targetObservation) {
-                        continue
-                    }
-                    val suffix = observation.subList(time, observation.size)
-                    val deltaValue = delta(prefix, suffix)[sourceState]!!
-                    targetObservationDeltaSum += deltaValue
-                }
-            }
-            deltaSumPerTargetObservation[targetObservation] = targetObservationDeltaSum
-            overallDeltaSum += targetObservationDeltaSum
-        }
-
-        for (targetObservation in this.observations) {
-            newEmissionProbabilities.addTransition(sourceState, targetObservation withProbabilityOf (deltaSumPerTargetObservation[targetObservation]!! / overallDeltaSum))
-        }
-    }
-
-    val newInitialProbabilities = mutableListOf<StateWithProbability<TState>>()
-    var overallDeltaSum = 0.0
-    val deltaSumPerTargetState = mutableMapOf<TState, Double>()
-    for (targetState in this.states) {
-        var targetStateDeltaSum = 0.0
-        for (observation in observationsList) {
-            val delta = this.delta(observation.take(1), observation.subList(1, observation.size))
-            targetStateDeltaSum += delta[targetState]!!
-        }
-        deltaSumPerTargetState[targetState] = targetStateDeltaSum
-        overallDeltaSum += targetStateDeltaSum
-    }
-
-    for (state in this.states) {
-        newInitialProbabilities.add(StateWithProbability(state, deltaSumPerTargetState[state]!! / overallDeltaSum))
-    }
-
-    return HiddenMarkovModel(newInitialProbabilities.asNormalized, newTransitionProbabilities.asNormalized, newEmissionProbabilities.asNormalized)
-}
-
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.alpha(): Map<TState, Double> {
-    // "forward" algorithm
-
-    var alpha = mutableMapOf<TState, Double>()
-
-    // Initialization
-    for (state in hiddenMarkovModel.states) {
-        val pi = hiddenMarkovModel.startingProbabilityOf(state)
-        val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observations[0]
-        alpha[state] = pi * b
-    }
-
-
-    for (observation in observations.drop(1)) {
-        val previousAlpha = alpha
-        alpha = mutableMapOf()
-
-        for (state in hiddenMarkovModel.states) {
-            val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observation
-
-            var incomingSum = 0.0
-            for (incomingState in hiddenMarkovModel.states) {
-                incomingSum += (hiddenMarkovModel.stateTransitions.given(incomingState) probabilityOf state) * previousAlpha[incomingState]!!
-            }
-            alpha[state] = incomingSum * b
-        }
-
-    }
-    return alpha
 
 }
-
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.beta(): Map<TState, Double> {
-    // "backward" algorithm
-
-    var beta = mutableMapOf<TState, Double>()
-
-    // Initialization
-    for (state in hiddenMarkovModel.states) {
-        beta[state] = 1.0
-    }
-
-    for (observation in observations.reversed().drop(1)) {
-        val previousBeta = beta
-        beta = mutableMapOf()
-
-        for (state in hiddenMarkovModel.states) {
-            var targetSum = 0.0
-            for (targetState in hiddenMarkovModel.states) {
-                targetSum += (hiddenMarkovModel.stateTransitions.given(state) probabilityOf targetState) *
-                        (hiddenMarkovModel.observationProbabilities.given(targetState) probabilityOf observation) *
-                        previousBeta[targetState]!!
-            }
-            beta[state] = targetSum
-        }
-
-    }
-    return beta
-
-}
-
-fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.gamma(prefix: List<TObservation>, suffix: List<TObservation>): StateTransitionTable<TState, TState> {
-    // probability that the observed sequence has "state" when seeing prefix
-    // followed by suffix
-
-    val alpha = this.observing(prefix).alpha()
-    val beta = this.observing(suffix).beta()
-    val probabilityOfObservation = this.observing(prefix + suffix).probabilityOfObservedSequence()
-    val gamma = StateTransitionTable<TState, TState>()
-
-    for (sourceState in this.states) {
-        for (targetState in this.states) {
-            val gammaValue = (alpha[sourceState]!! *
-                    (this.stateTransitions.given(sourceState) probabilityOf targetState) *
-                    (this.observationProbabilities.given(targetState) probabilityOf suffix.first()) *
-                    beta[targetState]!!) / probabilityOfObservation
-
-            gamma.addTransition(sourceState, targetState withProbabilityOf gammaValue)
-        }
-    }
-
-    return gamma
-
-}
-
-fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.delta(prefix: List<TObservation>, suffix: List<TObservation>): MutableMap<TState, Double> {
-
-    if (suffix.isNotEmpty()) {
-
-        val gamma = this.gamma(prefix, suffix)
-        val delta = mutableMapOf<TState, Double>()
-
-        for (sourceState in this.states) {
-            var deltaValue = 0.0
-            for (targetState in this.states) {
-                deltaValue += gamma.given(sourceState) probabilityOf targetState
-            }
-            delta[sourceState] = deltaValue
-        }
-
-        return delta
-
-    } else {
-
-        val delta = mutableMapOf<TState, Double>()
-
-        val alpha = this.observing(prefix).alpha()
-        val probabilityOfObservedSequence = this.observing(prefix).probabilityOfObservedSequence()
-
-        for (sourceState in this.states) {
-            delta[sourceState] = alpha[sourceState]!! / probabilityOfObservedSequence
-        }
-
-        return delta
-
-    }
-}
-
 
 fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfObservedSequence(): Double = this.alpha().values.sum()
+
 
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.observing(vararg observations: TObservation): HiddenMarkovModelWithObservations<TState, TObservation> =
         HiddenMarkovModelWithObservations(this, observations.asList())
@@ -387,58 +198,3 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.observing(var
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.observing(observations: List<TObservation>): HiddenMarkovModelWithObservations<TState, TObservation> =
         HiddenMarkovModelWithObservations(this, observations)
 
-val <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.mostLikelyStateSequence: List<TState>
-    get() {
-
-        // Simple implementation of the Viterbi Algorithm
-
-        // delta(n,i) = the highest likelihood of any single path ending in state s(i) after n steps
-        // psi(n,i) = the best path ending in state s(i) after n steps
-        // pi(i) = probability of s(i) being the first state
-
-        // Initialize delta(1,i) and psi(1,i)
-        val delta = mutableMapOf<TState, MutableList<Double>>()
-        val psi = mutableMapOf<TState, MutableList<TState?>>()
-
-        for (state in hiddenMarkovModel.states) {
-
-            val pi = hiddenMarkovModel.startingProbabilityOf(state)
-            val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observations[0]
-
-            delta[state] = mutableListOf(pi * b)
-            psi[state] = mutableListOf<TState?>(null)
-
-        }
-
-        fun predecessorWithMaximumLikelihood(iteration: Int, targetState: TState): StateWithProbability<TState> {
-            var result: StateWithProbability<TState>? = null
-            for (predecessor in hiddenMarkovModel.states) {
-                val likelihood = delta[predecessor]!![iteration - 1] * (hiddenMarkovModel.stateTransitions.given(predecessor) probabilityOf targetState)
-                if (result == null || likelihood > result.probability)
-                    result = StateWithProbability(predecessor, likelihood)
-            }
-            return result!!
-        }
-
-        for (iteration in 1 until observations.size) {
-            for (state in hiddenMarkovModel.states) {
-
-                val predecessor = predecessorWithMaximumLikelihood(iteration, state)
-                delta[state]!!.add(predecessor.probability * (hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observations[iteration]))
-                psi[state]!!.add(predecessor.state)
-
-            }
-        }
-
-        val pathEnding = requireNotNull(delta.entries.map { d -> StateWithProbability(d.key, d.value[2]) }.maxBy { s -> s.probability })
-
-        var mostLikelyStateSequence = listOf(pathEnding.state)
-        var currentState = pathEnding.state
-        for (idx in observations.size - 1 downTo 1) {
-            val previousState = psi[currentState]!![idx]!!
-            mostLikelyStateSequence = listOf(previousState) + mostLikelyStateSequence
-            currentState = previousState
-        }
-
-        return mostLikelyStateSequence
-    }

@@ -1,12 +1,14 @@
 package egger.software.hmm.example
 
-import egger.software.hmm.*
+import egger.software.hmm.HiddenMarkovModel
 import egger.software.hmm.algorithm.trainOneStepUsingSimpleBaumWelch
 import egger.software.hmm.algorithm.trainOneStepUsingWikipediaBaumWelch
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.closeTo
-import org.junit.jupiter.api.Test
+import egger.software.hmm.stateTransitionTable
+import egger.software.hmm.totalLogLikelyHood
+import egger.software.hmm.withProbabilityOf
+import egger.software.test.plusOrMinus
+import egger.software.test.shouldBe
+import kotlin.test.Test
 
 class BaumWelchExamples {
 
@@ -59,8 +61,8 @@ class BaumWelchExamples {
         }
 
         // then
-        assertThat(hmm.totalLogLikelyHood(trainingObservations), closeTo(-68.03804999063703, 1E-9))
-        assertThat(trainedHmm.stateTransitions, `is`(
+        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
+        trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
                     "s" resultsIn ("s" withProbabilityOf 0.08834742594843437)
@@ -69,10 +71,9 @@ class BaumWelchExamples {
                     "t" resultsIn ("s" withProbabilityOf 1.2947263732068315E-64)
                     "t" resultsIn ("t" withProbabilityOf 1.0)
 
-                }))
+                }
 
-        assertThat(trainedHmm.observationProbabilities, `is`(
-
+        trainedHmm.observationProbabilities shouldBe
                 stateTransitionTable {
 
                     "s" resultsIn ("A" withProbabilityOf 0.5881264753173849)
@@ -80,16 +81,16 @@ class BaumWelchExamples {
                     "t" resultsIn ("A" withProbabilityOf 0.3767927690757944)
                     "t" resultsIn ("B" withProbabilityOf 0.6232072309242056)
 
-                }))
+                }
 
-        assertThat(trainedHmm.initialStateProbabilities, `is`(
+        trainedHmm.initialStateProbabilities shouldBe
                 listOf(
                         "s" withProbabilityOf 0.9999976404557083,
                         "t" withProbabilityOf 2.35954429172607E-6
                 )
-        ))
 
-        assertThat(trainedHmm.totalLogLikelyHood(trainingObservations), closeTo(-70.67783539223969, 1E-9))
+
+        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-70.67783539223969).plusOrMinus(1E-9)
 
         // when
         trainedHmm = hmm
@@ -98,9 +99,9 @@ class BaumWelchExamples {
         }
 
         // then
-        assertThat(hmm.totalLogLikelyHood(trainingObservations), closeTo(-68.03804999063703, 1E-9))
+        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
 
-        assertThat(trainedHmm.stateTransitions, `is`(
+        trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
                     "s" resultsIn ("s" withProbabilityOf 0.019426319665748135)
@@ -109,10 +110,9 @@ class BaumWelchExamples {
                     "t" resultsIn ("s" withProbabilityOf 0.8921465657537299)
                     "t" resultsIn ("t" withProbabilityOf 0.10785343424627042)
 
-                }))
+                }
 
-        assertThat(trainedHmm.observationProbabilities, `is`(
-
+        trainedHmm.observationProbabilities shouldBe
                 stateTransitionTable {
 
                     "s" resultsIn ("A" withProbabilityOf 0.3999999999999997)
@@ -120,16 +120,15 @@ class BaumWelchExamples {
                     "t" resultsIn ("A" withProbabilityOf 0.4000000000000001)
                     "t" resultsIn ("B" withProbabilityOf 0.5999999999999995)
 
-                }))
+                }
 
-        assertThat(trainedHmm.initialStateProbabilities, `is`(
+        trainedHmm.initialStateProbabilities shouldBe
                 listOf(
                         "s" withProbabilityOf 0.47639073033859697,
                         "t" withProbabilityOf 0.5236092696614031
                 )
-        ))
 
-        assertThat(trainedHmm.totalLogLikelyHood(trainingObservations), closeTo(-67.3011667009256, 1E-9))
+        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-67.3011667009256).plusOrMinus(1E-9)
 
     }
 
@@ -185,9 +184,9 @@ class BaumWelchExamples {
         }
 
         // then
-        assertThat(hmm.totalLogLikelyHood(trainingObservations), closeTo(-10.024586720876568, 1E-9))
+        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-10.024586720876568).plusOrMinus(1E-9)
 
-        assertThat(trainedHmm.stateTransitions, `is`(
+        trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
                     "State 1" resultsIn ("State 1" withProbabilityOf 0.7549972129807374)
@@ -196,10 +195,9 @@ class BaumWelchExamples {
                     "State 2" resultsIn ("State 1" withProbabilityOf 0.07628438054321163)
                     "State 2" resultsIn ("State 2" withProbabilityOf 0.9237156194567884)
 
-                }))
+                }
 
-        assertThat(trainedHmm.observationProbabilities, `is`(
-
+        trainedHmm.observationProbabilities shouldBe
                 stateTransitionTable {
 
                     "State 1" resultsIn ("No Eggs" withProbabilityOf 0.23731329030594606)
@@ -208,16 +206,16 @@ class BaumWelchExamples {
                     "State 2" resultsIn ("No Eggs" withProbabilityOf 0.9460574905679491)
                     "State 2" resultsIn ("Eggs" withProbabilityOf 0.053942509432050874)
 
-                }))
+                }
 
-        assertThat(trainedHmm.initialStateProbabilities, `is`(
+        trainedHmm.initialStateProbabilities shouldBe
                 listOf(
                         "State 1" withProbabilityOf 0.23743363646286353,
                         "State 2" withProbabilityOf 0.7625663635371365
                 )
-        ))
 
-        assertThat(trainedHmm.totalLogLikelyHood(trainingObservations), closeTo(-9.024464380657642, 1E-9))
+
+        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-9.024464380657642).plusOrMinus(1E-9)
 
         // when
         trainedHmm = hmm
@@ -226,9 +224,9 @@ class BaumWelchExamples {
         }
 
         // then
-        assertThat(hmm.totalLogLikelyHood(trainingObservations), closeTo(-10.024586720876568, 1E-9))
+        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-10.024586720876568).plusOrMinus(1E-9)
 
-        assertThat(trainedHmm.stateTransitions, `is`(
+        trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
                     "State 1" resultsIn ("State 1" withProbabilityOf 0.5)
@@ -237,10 +235,9 @@ class BaumWelchExamples {
                     "State 2" resultsIn ("State 1" withProbabilityOf 0.14285714285714285)
                     "State 2" resultsIn ("State 2" withProbabilityOf 0.8571428571428571)
 
-                }))
+                }
 
-        assertThat(trainedHmm.observationProbabilities, `is`(
-
+        trainedHmm.observationProbabilities shouldBe
                 stateTransitionTable {
 
                     "State 1" resultsIn ("No Eggs" withProbabilityOf 2.3183814909631144E-102)
@@ -248,16 +245,15 @@ class BaumWelchExamples {
                     "State 2" resultsIn ("No Eggs" withProbabilityOf 1.0)
                     "State 2" resultsIn ("Eggs" withProbabilityOf 2.9535782158455884E-193)
 
-                }))
+                }
 
-        assertThat(trainedHmm.initialStateProbabilities, `is`(
+        trainedHmm.initialStateProbabilities shouldBe
                 listOf(
                         "State 1" withProbabilityOf 0.2222222222222222,
                         "State 2" withProbabilityOf 0.7777777777777778
                 )
-        ))
 
-        assertThat(trainedHmm.totalLogLikelyHood(trainingObservations), closeTo(-9.024464380657644, 1E-9))
+        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-9.024464380657644).plusOrMinus(1E-9)
 
     }
 

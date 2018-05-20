@@ -1,13 +1,14 @@
-package egger.software.hmm.example
+package egger.software.hmm.experiment
 
-import egger.software.hmm.*
+import egger.software.hmm.HiddenMarkovModel
 import egger.software.hmm.algorithm.mostLikelyStateSequence
-import egger.software.hmm.state.Coin
-import egger.software.hmm.state.Coin.Fair
-import egger.software.hmm.state.Coin.UnFair
-import egger.software.hmm.state.Toss
-import egger.software.hmm.state.Toss.Heads
-import egger.software.hmm.state.Toss.Tails
+import egger.software.hmm.experiment.Coin.Fair
+import egger.software.hmm.experiment.Coin.UnFair
+import egger.software.hmm.experiment.Toss.Heads
+import egger.software.hmm.experiment.Toss.Tails
+import egger.software.hmm.observing
+import egger.software.hmm.stateTransitionTable
+import egger.software.hmm.withProbabilityOf
 import java.util.*
 
 data class MasterData(val probabilityOfChangingCoins: Double,
@@ -16,6 +17,8 @@ data class MasterData(val probabilityOfChangingCoins: Double,
 
 data class TossRow(val coin: Coin, val toss: Toss)
 
+enum class Coin { Fair, UnFair }
+enum class Toss {Heads, Tails}
 
 fun generateRandomTosses(numberOfTosses: Int, masterData: MasterData): List<TossRow> {
     val random = Random()
@@ -74,12 +77,12 @@ fun estimateMostLikelyCoinSequenceBasedOnTosses(masterData: MasterData, tosses: 
 
     }
 
-    val hmm = HiddenMarkovModel(
+    val hmmObservingTosses = HiddenMarkovModel(
             initialStateProbabilities = listOf(Fair withProbabilityOf 0.5, UnFair withProbabilityOf 0.5),
             stateTransitions = coinTable,
             observationProbabilities = observationTable).observing(tosses)
 
-    return hmm.mostLikelyStateSequence
+    return hmmObservingTosses.mostLikelyStateSequence
 }
 
 fun main(args: Array<String>) {

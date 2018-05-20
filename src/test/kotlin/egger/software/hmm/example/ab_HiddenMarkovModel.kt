@@ -1,6 +1,8 @@
 package egger.software.hmm.example
 
 import egger.software.hmm.*
+import egger.software.hmm.algorithm.likelihoodOfHiddenStateSequence
+import egger.software.hmm.algorithm.logLikelihoodOfHiddenStateSequence
 import egger.software.hmm.state.Caretaker
 import egger.software.hmm.state.Caretaker.NoUmbrella
 import egger.software.hmm.state.Caretaker.Umbrella
@@ -97,10 +99,10 @@ class HiddenMarkovModelExample {
                 stateTransitions = weatherTable,
                 observationProbabilities = caretakerTable)
 
-        hmm.observing(NoUmbrella, NoUmbrella, NoUmbrella).startingWith(Sunny).likelihoodOf(Sunny, Foggy, Sunny) shouldBe 0.00567.plusOrMinus(10E-9)
+        hmm.observing(NoUmbrella, NoUmbrella, NoUmbrella).startingWith(Sunny).likelihoodOfHiddenStateSequence(Sunny, Foggy, Sunny) shouldBe 0.00567.plusOrMinus(10E-9)
 
         // Using log likelihood (needed for long sequences)
-        hmm.observing(NoUmbrella, NoUmbrella, NoUmbrella).startingWith(Sunny).logLikelihoodOf(Sunny, Foggy, Sunny) shouldBe (-0.2464169411070934).plusOrMinus(10E-9)
+        hmm.observing(NoUmbrella, NoUmbrella, NoUmbrella).startingWith(Sunny).logLikelihoodOfHiddenStateSequence(Sunny, Foggy, Sunny) shouldBe (-0.2464169411070934).plusOrMinus(10E-9)
     }
 }
 

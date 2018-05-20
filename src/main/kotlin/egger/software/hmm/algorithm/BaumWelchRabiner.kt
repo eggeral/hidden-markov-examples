@@ -95,7 +95,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
     val result = mutableMapOf<TState, Double>()
     var totalSum = 0.0
-    val alpha = this.alpha(time)
+    val alpha = this.probabilityOfObservedSequenceForEachHiddenState(time)
     val beta = this.beta(time)
 
     for (sourceState in this.hiddenMarkovModel.states) {
@@ -116,7 +116,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
     val tmp = StateTransitionTable<TState, TState>()
     var totalSum = 0.0
-    val alpha = this.alpha(time)
+    val alpha = this.probabilityOfObservedSequenceForEachHiddenState(time)
     val beta = this.beta(time + 1)
 
     for (sourceState in this.hiddenMarkovModel.states) {
@@ -147,7 +147,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
 }
 
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.alpha(time: Int): Map<TState, Double> {
+fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfObservedSequenceForEachHiddenState(time: Int): Map<TState, Double> {
 
     // "forward" algorithm
     // alternative solution based on the index in the observed sequence

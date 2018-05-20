@@ -1,6 +1,8 @@
 package egger.software.hmm.example
 
 import egger.software.hmm.*
+import egger.software.hmm.algorithm.calculateForwardBackward
+import egger.software.hmm.algorithm.probabilityOfObservationSequence
 import egger.software.test.plusOrMinus
 import egger.software.test.shouldBe
 import kotlin.test.Test
@@ -47,7 +49,7 @@ class ForwardBackwardExamples {
 
         // then
         // the probability of the observed sequence should be 0.051533999999999996"
-        hmm.observing("A", "B", "B", "A").probabilityOfObservedSequence() shouldBe 0.051533999999999996.plusOrMinus(10E-9)
+        hmm.observing("A", "B", "B", "A").probabilityOfObservationSequence() shouldBe 0.051533999999999996.plusOrMinus(10E-9)
 
 
     }

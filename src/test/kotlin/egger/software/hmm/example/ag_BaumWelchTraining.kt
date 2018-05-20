@@ -4,7 +4,7 @@ import egger.software.hmm.HiddenMarkovModel
 import egger.software.hmm.algorithm.trainOneStepUsingSimpleBaumWelch
 import egger.software.hmm.algorithm.trainOneStepUsingWikipediaBaumWelch
 import egger.software.hmm.stateTransitionTable
-import egger.software.hmm.totalLogLikelyHood
+import egger.software.hmm.algorithm.totalLogLikelyHoodOfAllObservationSequences
 import egger.software.hmm.withProbabilityOf
 import egger.software.test.plusOrMinus
 import egger.software.test.shouldBe
@@ -61,7 +61,7 @@ class BaumWelchExamples {
         }
 
         // then
-        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
+        hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
         trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
@@ -90,7 +90,7 @@ class BaumWelchExamples {
                 )
 
 
-        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-70.67783539223969).plusOrMinus(1E-9)
+        trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-70.67783539223969).plusOrMinus(1E-9)
 
         // when
         trainedHmm = hmm
@@ -99,7 +99,7 @@ class BaumWelchExamples {
         }
 
         // then
-        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
+        hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
 
         trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
@@ -128,7 +128,7 @@ class BaumWelchExamples {
                         "t" withProbabilityOf 0.5236092696614031
                 )
 
-        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-67.3011667009256).plusOrMinus(1E-9)
+        trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-67.3011667009256).plusOrMinus(1E-9)
 
     }
 
@@ -184,7 +184,7 @@ class BaumWelchExamples {
         }
 
         // then
-        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-10.024586720876568).plusOrMinus(1E-9)
+        hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-10.024586720876568).plusOrMinus(1E-9)
 
         trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
@@ -215,7 +215,7 @@ class BaumWelchExamples {
                 )
 
 
-        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-9.024464380657642).plusOrMinus(1E-9)
+        trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-9.024464380657642).plusOrMinus(1E-9)
 
         // when
         trainedHmm = hmm
@@ -224,7 +224,7 @@ class BaumWelchExamples {
         }
 
         // then
-        hmm.totalLogLikelyHood(trainingObservations) shouldBe (-10.024586720876568).plusOrMinus(1E-9)
+        hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-10.024586720876568).plusOrMinus(1E-9)
 
         trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
@@ -253,7 +253,7 @@ class BaumWelchExamples {
                         "State 2" withProbabilityOf 0.7777777777777778
                 )
 
-        trainedHmm.totalLogLikelyHood(trainingObservations) shouldBe (-9.024464380657644).plusOrMinus(1E-9)
+        trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-9.024464380657644).plusOrMinus(1E-9)
 
     }
 

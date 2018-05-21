@@ -19,8 +19,8 @@ class UtilsSpec {
         statesWithProbability.selectStateAtOffset(0.3) shouldBe Blue
         statesWithProbability.selectStateAtOffset(0.4) shouldBe Green
 
-        shouldThrow<IllegalArgumentException> { statesWithProbability.selectStateAtOffset(-0.1) }
-        shouldThrow<IllegalArgumentException> { statesWithProbability.selectStateAtOffset(1.0) }
+        { statesWithProbability.selectStateAtOffset(-0.1) } shouldThrow { it is IllegalArgumentException }
+        { statesWithProbability.selectStateAtOffset(1.0) } shouldThrow { it is IllegalArgumentException }
 
     }
 
@@ -33,6 +33,12 @@ class UtilsSpec {
                         "B" to 1
                 )
 
+    }
+
+    @Test
+    fun `the double values of a map can be normalized to 1`() {
+        mapOf("a" to 20.0, "b" to 30.0, "c" to 50.0).asNormalized shouldBe
+                mapOf("a" to 0.2, "b" to 0.3, "c" to 0.5)
     }
 
 }

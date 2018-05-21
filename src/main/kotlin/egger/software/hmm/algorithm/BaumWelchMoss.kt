@@ -115,7 +115,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.gamma(prefix:
 
     val alpha = this.observing(prefix).probabilityOfObservedSequenceForEachHiddenState()
     val beta = this.observing(suffix).beta()
-    val probabilityOfObservation = this.observing(prefix + suffix).probabilityOfObservationSequence()
+    val probabilityOfObservation = this.observing(prefix + suffix).probabilityOfObservedSequence()
     val gamma = StateTransitionTable<TState, TState>()
 
     for (sourceState in this.states) {
@@ -155,7 +155,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.delta(prefix:
         val delta = mutableMapOf<TState, Double>()
 
         val alpha = this.observing(prefix).probabilityOfObservedSequenceForEachHiddenState()
-        val probabilityOfObservedSequence = this.observing(prefix).probabilityOfObservationSequence()
+        val probabilityOfObservedSequence = this.observing(prefix).probabilityOfObservedSequence()
 
         for (sourceState in this.states) {
             delta[sourceState] = alpha[sourceState]!! / probabilityOfObservedSequence

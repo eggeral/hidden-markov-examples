@@ -52,7 +52,7 @@ class StateTransitionTable<TSourceState, TTargetState> {
         val stringBuilder = StringBuilder()
 
         for (source in sources) {
-            stringBuilder.append("$source -> [ ")
+            stringBuilder.append("$source - [ ")
             stringBuilder.append(sourceToTargets[source]!!.entries.map { target -> "'${target.key}':(${target.value})" }.joinToString())
             stringBuilder.append(" ]\n")
         }

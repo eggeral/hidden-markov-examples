@@ -1,16 +1,66 @@
 package egger.software.hmm.example
 
 import egger.software.hmm.HiddenMarkovModel
-import egger.software.hmm.algorithm.trainOneStepUsingSimpleBaumWelch
-import egger.software.hmm.algorithm.trainOneStepUsingWikipediaBaumWelch
+import egger.software.hmm.algorithm.*
+import egger.software.hmm.observing
 import egger.software.hmm.stateTransitionTable
-import egger.software.hmm.algorithm.totalLogLikelyHoodOfAllObservationSequences
 import egger.software.hmm.withProbabilityOf
 import egger.software.test.plusOrMinus
 import egger.software.test.shouldBe
 import kotlin.test.Test
 
 class BaumWelchExamples {
+
+    @Test
+    fun `testing forward backward`() {
+
+        // The following example is taken from
+        // http://www.indiana.edu/~iulg/moss/hmmcalculations.pdf
+
+        // given
+        val transitionProbability = stateTransitionTable<String, String> {
+
+            "s" resultsIn ("s" withProbabilityOf 0.3)
+            "s" resultsIn ("t" withProbabilityOf 0.7)
+
+            "t" resultsIn ("s" withProbabilityOf 0.1)
+            "t" resultsIn ("t" withProbabilityOf 0.9)
+
+        }
+
+        val emissionProbability = stateTransitionTable<String, String> {
+
+            "s" resultsIn ("A" withProbabilityOf 0.4)
+            "s" resultsIn ("B" withProbabilityOf 0.6)
+
+            "t" resultsIn ("A" withProbabilityOf 0.5)
+            "t" resultsIn ("B" withProbabilityOf 0.5)
+
+        }
+
+        val startingProbability = listOf("s" withProbabilityOf 0.85, "t" withProbabilityOf 0.15)
+
+        val hmm = HiddenMarkovModel(initialStateProbabilities = startingProbability,
+                stateTransitions = transitionProbability,
+                observationProbabilities = emissionProbability)
+
+        val trainingObservations = mutableListOf<List<String>>()
+        for (count in 1..10) {
+            trainingObservations.add(listOf("A", "B", "B", "A"))
+        }
+
+        for (count in 1..20) {
+            trainingObservations.add(listOf("B", "A", "B"))
+        }
+
+        // when
+        println(hmm.observing(listOf("A", "B", "B", "A")).calculateForwardBackward())
+        println(hmm.observing(listOf("A", "B", "B", "A")).probabilityOfObservedSequenceForEachHiddenState(1))
+        println(hmm.observing(listOf("A", "B", "B", "A")).probabilityOfObservedSequenceForEachHiddenState(2))
+        println(hmm.observing(listOf("A", "B", "B", "A")).probabilityOfObservedSequenceForEachHiddenState(3))
+        println(hmm.observing(listOf("A", "B", "B", "A")).probabilityOfObservedSequenceForEachHiddenState(4))
+
+    }
 
     @Test
     fun `the parameters of an HMM can be estimated by the Baum-Welch algorithm for the example used by Larry Moss`() {
@@ -95,7 +145,7 @@ class BaumWelchExamples {
         // when
         trainedHmm = hmm
         for (count in 1..1000) {
-            trainedHmm = trainedHmm.trainOneStepUsingWikipediaBaumWelch(trainingObservations)
+            trainedHmm = trainedHmm.trainOneStepUsingRabinerBaumWelch(trainingObservations)
         }
 
         // then
@@ -220,7 +270,7 @@ class BaumWelchExamples {
         // when
         trainedHmm = hmm
         for (count in 1..1000) {
-            trainedHmm = trainedHmm.trainOneStepUsingWikipediaBaumWelch(trainingObservations)
+            trainedHmm = trainedHmm.trainOneStepUsingRabinerBaumWelch(trainingObservations)
         }
 
         // then

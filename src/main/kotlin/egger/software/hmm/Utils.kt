@@ -59,4 +59,11 @@ val <TState> List<StateWithProbability<TState>>.asNormalized: List<StateWithProb
         return this.map { StateWithProbability(it.state, it.probability / sum) }
     }
 
+val <TState> Map<TState, Double>.asNormalized: Map<TState, Double>
+    get() {
+        val sum = this.values.sum()
+        return this.mapValues { entry -> entry.value / sum }
+    }
+
+
 fun <TKey, TValue> MutableMap<TKey, TValue>.initUsing(keys: Set<TKey>, value: TValue) = this.apply { keys.forEach { set(it, value) } }

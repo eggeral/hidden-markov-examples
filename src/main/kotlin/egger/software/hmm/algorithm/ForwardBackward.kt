@@ -1,9 +1,6 @@
 package egger.software.hmm.algorithm
 
-import egger.software.hmm.HiddenMarkovModel
-import egger.software.hmm.HiddenMarkovModelWithObservations
-import egger.software.hmm.observing
-import egger.software.hmm.probabilityOf
+import egger.software.hmm.*
 import kotlin.math.ln
 
 
@@ -17,36 +14,48 @@ data class ForwardBackwardCalculationResult<TState>(
     }
 }
 
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.calculateForwardBackward(): ForwardBackwardCalculationResult<TState> {
+fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.calculateForwardBackward(normalize: Boolean = true): ForwardBackwardCalculationResult<TState> {
 
     // forward
     val forward = mutableListOf<Map<TState, Double>>()
 
-    // initialization
+    fun Map<TState, Double>.normalizeIfRequested() = if (normalize) this.asNormalized else this
 
+    // initialization
+    // time = 0 -> this can not happen but helps when calculating beta and posterior
     var currentForwardColumn = mutableMapOf<TState, Double>()
     for (state in hiddenMarkovModel.states) {
         currentForwardColumn[state] = hiddenMarkovModel.startingProbabilityOf(state)
     }
-    forward.add(currentForwardColumn)
+    forward.add(currentForwardColumn) // already normalized
+
+    // time = 1
+    currentForwardColumn = mutableMapOf()
+    val firstObservation = observations.first()
+    for (state in hiddenMarkovModel.states) {
+        val probabilityOfStateAndObservation = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf firstObservation
+        currentForwardColumn[state] = hiddenMarkovModel.startingProbabilityOf(state) * probabilityOfStateAndObservation
+    }
+    forward.add(currentForwardColumn.normalizeIfRequested())
+
 
     // iteration
-    for (observation in observations) {
+    for (observation in observations.drop(1)) {
+
         val previousForwardColumn = forward.last()
         currentForwardColumn = mutableMapOf()
 
         for (state in hiddenMarkovModel.states) {
-            val b = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observation
+            val probabilityOfStateAndObservation = hiddenMarkovModel.observationProbabilities.given(state) probabilityOf observation
 
             var incomingSum = 0.0
             for (incomingState in hiddenMarkovModel.states) {
                 incomingSum += (hiddenMarkovModel.stateTransitions.given(incomingState) probabilityOf state) * previousForwardColumn[incomingState]!!
             }
-            currentForwardColumn[state] = incomingSum * b
+            currentForwardColumn[state] = incomingSum * probabilityOfStateAndObservation
         }
 
-        val scale = 1.0 / currentForwardColumn.values.sum()
-        forward.add(currentForwardColumn.mapValues { entry -> entry.value * scale })
+        forward.add(currentForwardColumn.normalizeIfRequested())
 
     }
 
@@ -58,7 +67,6 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
     for (state in hiddenMarkovModel.states) {
         currentBackwardColumn[state] = 1.0
     }
-    // ??? this is not normalized to 1.0 as the other entries. Is this correct?
     backward.add(0, currentBackwardColumn)
 
     // iteration
@@ -79,9 +87,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
         }
 
-        val scale = 1.0 / currentBackwardColumn.values.sum()
-        backward.add(0, currentBackwardColumn.mapValues { entry -> entry.value * scale })
-
+        backward.add(0, currentBackwardColumn.normalizeIfRequested())
     }
 
     val posterior = mutableListOf<Map<TState, Double>>()
@@ -93,8 +99,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
             currentPosteriorColumn[state] = forward[idx][state]!! * backward[idx][state]!!
         }
 
-        val scale = 1.0 / currentPosteriorColumn.values.sum()
-        posterior.add(currentPosteriorColumn.mapValues { entry -> entry.value * scale })
+        posterior.add(currentPosteriorColumn.normalizeIfRequested())
     }
 
     return ForwardBackwardCalculationResult(forward, backward, posterior)
@@ -133,13 +138,13 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
 }
 
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfObservationSequence(): Double = this.probabilityOfObservedSequenceForEachHiddenState().values.sum()
+fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfObservedSequence(): Double = this.probabilityOfObservedSequenceForEachHiddenState().values.sum()
 
 fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.totalLogLikelyHoodOfAllObservationSequences(observationsList: List<List<TObservation>>): Double {
 
     var result = 0.0
     for (observation in observationsList) {
-        result += ln(this.observing(observation).probabilityOfObservationSequence())
+        result += ln(this.observing(observation).probabilityOfObservedSequence())
     }
     return result
 

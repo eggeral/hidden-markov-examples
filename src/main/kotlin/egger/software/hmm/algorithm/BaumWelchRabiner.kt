@@ -23,6 +23,8 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
 
     for (observation in observationsList) {
 
+        val forwardBackwardCalculationResult = this.observing(observation).calculateForwardBackward()
+
         val probabilityOfBeingInStateAtTimeOne = this.observing(observation).probabilityOfBeingInState(1)
         for (state in this.states) {
             expectedNumberOfTimesInStateAtTheBeginning[state] = expectedNumberOfTimesInStateAtTheBeginning[state]!! + probabilityOfBeingInStateAtTimeOne[state]!!
@@ -30,7 +32,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
 
         for (time in 1 until observation.size) { // note that we go only to time - 1 as the algorithm demands
 
-            val probabilityOfBeingInStateAndTheNextStateIs = this.observing(observation).probabilityOfBeingInStateAndTheNextStateIs(time)
+            val probabilityOfBeingInStateAndTheNextStateIs = this.observing(observation).probabilityOfBeingInStateAndTheNextStateIs(forwardBackwardCalculationResult, time)
 
             for (sourceState in this.states) {
                 for (targetState in this.states) {
@@ -112,12 +114,12 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
 
 }
 
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfBeingInStateAndTheNextStateIs(time: Int): StateTransitionTable<TState, TState> {
+fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfBeingInStateAndTheNextStateIs(forwardBackwardCalculationResult: ForwardBackwardCalculationResult<TState>, time: Int): StateTransitionTable<TState, TState> {
 
     val tmp = StateTransitionTable<TState, TState>()
     var totalSum = 0.0
-    val alpha = this.probabilityOfObservedSequenceForEachHiddenState(time)
-    val beta = this.beta(time + 1)
+    val alpha = forwardBackwardCalculationResult.forward[time]
+    val beta = forwardBackwardCalculationResult.backward[time + 1]
 
     for (sourceState in this.hiddenMarkovModel.states) {
         for (targetState in this.hiddenMarkovModel.states) {

@@ -1,7 +1,6 @@
 package egger.software.hmm.example
 
 import egger.software.hmm.HiddenMarkovModel
-import egger.software.hmm.algorithm.beta
 import egger.software.hmm.algorithm.calculateForwardBackward
 import egger.software.hmm.algorithm.probabilityOfObservedSequence
 import egger.software.hmm.observing

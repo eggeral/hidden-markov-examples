@@ -7,7 +7,7 @@ import egger.software.hmm.*
 // https://www.ece.ucsb.edu/Faculty/Rabiner/ece259/Reprints/tutorial%20on%20hmm%20and%20applications.pdf
 // and
 // https://people.eecs.berkeley.edu/~stephentu/writeups/hmm-baum-welch-derivation.pdf
-fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepUsingRabinerBaumWelch(observationsList: List<List<TObservation>>): HiddenMarkovModel<TState, TObservation> {
+fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepUsingBaumWelch(observationsList: List<List<TObservation>>): HiddenMarkovModel<TState, TObservation> {
 
     val newTransitionProbabilities = stateTransitionTable<TState, TState> {}
     val newEmissionProbabilities = stateTransitionTable<TState, TObservation> {}

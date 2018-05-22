@@ -37,7 +37,7 @@ fun Double.plusOrMinus(tolerance: Double): (String?, Double) -> Unit = { message
 
     val diff = Math.abs(this - expected)
     if (diff > tolerance)
-        failWithMessage(message, "expected:<$expected> plus or minus $tolerance, but was:<$this>")
+        failWithMessage(message, "expected:<$this> plus or minus $tolerance, but was:<$expected>")
 
 }
 

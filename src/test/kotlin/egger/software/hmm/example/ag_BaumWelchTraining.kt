@@ -1,10 +1,13 @@
 package egger.software.hmm.example
 
 import egger.software.hmm.HiddenMarkovModel
-import egger.software.hmm.algorithm.*
-import egger.software.hmm.observing
+import egger.software.hmm.algorithm.totalLikelyHoodOfAllObservationSequences
+import egger.software.hmm.algorithm.totalLogLikelyHoodOfAllObservationSequences
+import egger.software.hmm.algorithm.trainOneStepUsingRabinerBaumWelch
+import egger.software.hmm.algorithm.trainOneStepUsingSimpleBaumWelch
 import egger.software.hmm.stateTransitionTable
 import egger.software.hmm.withProbabilityOf
+import egger.software.test.greaterThan
 import egger.software.test.plusOrMinus
 import egger.software.test.shouldBe
 import kotlin.test.Test
@@ -12,7 +15,7 @@ import kotlin.test.Test
 class BaumWelchExamples {
 
     @Test
-    fun `the parameters of an HMM can be estimated by the Baum-Welch algorithm for the example used by Larry Moss`() {
+    fun `the parameters of an HMM can be estimated by the Baum-Welch algorithm for the example used by Larry Moss using a simple Baum-Welch version`() {
 
         // The following example is taken from
         // http://www.indiana.edu/~iulg/moss/hmmcalculations.pdf
@@ -60,7 +63,13 @@ class BaumWelchExamples {
         }
 
         // then
-        hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
+        val originalTotalLogLikelyHoodOfAllObservationSequences = hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations)
+        val originalTotalLikelyHoodOfAllObservationSequences = hmm.totalLikelyHoodOfAllObservationSequences(trainingObservations)
+
+        originalTotalLogLikelyHoodOfAllObservationSequences shouldBe (-68.03804999063703).plusOrMinus(1E-9)
+        originalTotalLikelyHoodOfAllObservationSequences shouldBe (2.827810674989839E-30).plusOrMinus(1E-40)
+
+
         trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
@@ -88,48 +97,115 @@ class BaumWelchExamples {
                         "t" withProbabilityOf 2.35954429172607E-6
                 )
 
+        val trainedTotalLogLikelyHoodOfAllObservationSequences = trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations)
+        val trainedTotalLikelyHoodOfAllObservationSequences = trainedHmm.totalLikelyHoodOfAllObservationSequences(trainingObservations)
 
-        trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-70.67783539223969).plusOrMinus(1E-9)
+        trainedTotalLogLikelyHoodOfAllObservationSequences shouldBe (-70.67783539223969).plusOrMinus(1E-9)
+        trainedTotalLikelyHoodOfAllObservationSequences shouldBe (2.0183946961180503E-31).plusOrMinus(1E-40)
+
+
+        // TODO my simple implementation is wrong as it does not get to a better result than the original HMM
+        //trainedTotalLogLikelyHoodOfAllObservationSequences shouldBe greaterThan(originalTotalLogLikelyHoodOfAllObservationSequences)
+        //trainedTotalLikelyHoodOfAllObservationSequences shouldBe greaterThan(originalTotalLikelyHoodOfAllObservationSequences)
+
+
+    }
+
+    @Test
+    fun `the parameters of an HMM can be estimated by the Baum-Welch algorithm for the example used by Larry Moss using the Baum-Welch version used by Rabiner`() {
+
+        // The following example is taken from
+        // http://www.indiana.edu/~iulg/moss/hmmcalculations.pdf
+
+        // given
+        val transitionProbability = stateTransitionTable<String, String> {
+
+            "s" resultsIn ("s" withProbabilityOf 0.3)
+            "s" resultsIn ("t" withProbabilityOf 0.7)
+
+            "t" resultsIn ("s" withProbabilityOf 0.1)
+            "t" resultsIn ("t" withProbabilityOf 0.9)
+
+        }
+
+        val emissionProbability = stateTransitionTable<String, String> {
+
+            "s" resultsIn ("A" withProbabilityOf 0.4)
+            "s" resultsIn ("B" withProbabilityOf 0.6)
+
+            "t" resultsIn ("A" withProbabilityOf 0.5)
+            "t" resultsIn ("B" withProbabilityOf 0.5)
+
+        }
+
+        val startingProbability = listOf("s" withProbabilityOf 0.85, "t" withProbabilityOf 0.15)
+
+        val hmm = HiddenMarkovModel(initialStateProbabilities = startingProbability,
+                stateTransitions = transitionProbability,
+                observationProbabilities = emissionProbability)
+
+        val trainingObservations = mutableListOf<List<String>>()
+        for (count in 1..10) {
+            trainingObservations.add(listOf("A", "B", "B", "A"))
+        }
+
+        for (count in 1..20) {
+            trainingObservations.add(listOf("B", "A", "B"))
+        }
 
         // when
-        trainedHmm = hmm
+        var trainedHmm = hmm
         for (count in 1..1000) {
             trainedHmm = trainedHmm.trainOneStepUsingRabinerBaumWelch(trainingObservations)
         }
 
         // then
-        hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-68.03804999063703).plusOrMinus(1E-9)
+
+        val originalTotalLogLikelyHoodOfAllObservationSequences = hmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations)
+        val originalTotalLikelyHoodOfAllObservationSequences = hmm.totalLikelyHoodOfAllObservationSequences(trainingObservations)
+
+        originalTotalLogLikelyHoodOfAllObservationSequences shouldBe (-68.03804999063703).plusOrMinus(1E-9)
+        originalTotalLikelyHoodOfAllObservationSequences shouldBe (2.827810674989839E-30).plusOrMinus(1E-40)
 
         trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
-                    "s" resultsIn ("s" withProbabilityOf 0.003038543984912692)
-                    "s" resultsIn ("t" withProbabilityOf 0.9969614560150869)
+                    "s" resultsIn ("s" withProbabilityOf 0.0)
+                    "s" resultsIn ("t" withProbabilityOf 1.0)
 
-                    "t" resultsIn ("s" withProbabilityOf 0.8805787617516218)
-                    "t" resultsIn ("t" withProbabilityOf 0.11942123824837811)
+                    "t" resultsIn ("s" withProbabilityOf 1.0)
+                    "t" resultsIn ("t" withProbabilityOf 0.0)
 
                 }
 
         trainedHmm.observationProbabilities shouldBe
                 stateTransitionTable {
 
-                    "s" resultsIn ("A" withProbabilityOf 0.3999999999999997)
-                    "s" resultsIn ("B" withProbabilityOf 0.6000000000000004)
-                    "t" resultsIn ("A" withProbabilityOf 0.4000000000000001)
-                    "t" resultsIn ("B" withProbabilityOf 0.5999999999999995)
+                    "s" resultsIn ("A" withProbabilityOf 0.16666666666666666)
+                    "s" resultsIn ("B" withProbabilityOf 0.8333333333333334)
+                    "t" resultsIn ("A" withProbabilityOf 0.75)
+                    "t" resultsIn ("B" withProbabilityOf 0.25)
 
                 }
 
         trainedHmm.initialStateProbabilities shouldBe
                 listOf(
-                        "s" withProbabilityOf 0.46900660418291906,
-                        "t" withProbabilityOf 0.5309933958170809
+                        "s" withProbabilityOf 1.0,
+                        "t" withProbabilityOf 0.0
                 )
 
-        trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-67.3011667009256).plusOrMinus(1E-9)
+
+        val trainedTotalLogLikelyHoodOfAllObservationSequences = trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations)
+        val trainedTotalLikelyHoodOfAllObservationSequences = trainedHmm.totalLikelyHoodOfAllObservationSequences(trainingObservations)
+
+        trainedTotalLogLikelyHoodOfAllObservationSequences shouldBe (-49.5270783167306).plusOrMinus(1E-9)
+        trainedTotalLikelyHoodOfAllObservationSequences shouldBe (3.095018022243141E-22).plusOrMinus(1E-40)
+
+        trainedTotalLogLikelyHoodOfAllObservationSequences shouldBe greaterThan(originalTotalLogLikelyHoodOfAllObservationSequences)
+        trainedTotalLikelyHoodOfAllObservationSequences shouldBe greaterThan(originalTotalLikelyHoodOfAllObservationSequences)
 
     }
+
 
     @Test
     fun `the parameters of an HMM can be estimated by the Baum-Welch algorithm for the example used on Wikipedia`() {
@@ -228,28 +304,28 @@ class BaumWelchExamples {
         trainedHmm.stateTransitions shouldBe
                 stateTransitionTable {
 
-                    "State 1" resultsIn ("State 1" withProbabilityOf 0.5)
-                    "State 1" resultsIn ("State 2" withProbabilityOf 0.5)
+                    "State 1" resultsIn ("State 1" withProbabilityOf 0.7549972129807376)
+                    "State 1" resultsIn ("State 2" withProbabilityOf 0.24500278701926237)
 
-                    "State 2" resultsIn ("State 1" withProbabilityOf 0.14285714285714285)
-                    "State 2" resultsIn ("State 2" withProbabilityOf 0.8571428571428571)
+                    "State 2" resultsIn ("State 1" withProbabilityOf 0.07628438054321154)
+                    "State 2" resultsIn ("State 2" withProbabilityOf 0.9237156194567884)
 
                 }
 
         trainedHmm.observationProbabilities shouldBe
                 stateTransitionTable {
 
-                    "State 1" resultsIn ("No Eggs" withProbabilityOf 2.3183814909631144E-102)
-                    "State 1" resultsIn ("Eggs" withProbabilityOf 1.0)
-                    "State 2" resultsIn ("No Eggs" withProbabilityOf 1.0)
-                    "State 2" resultsIn ("Eggs" withProbabilityOf 2.9535782158455884E-193)
+                    "State 1" resultsIn ("No Eggs" withProbabilityOf 0.23731329030594595)
+                    "State 1" resultsIn ("Eggs" withProbabilityOf 0.7626867096940542)
+                    "State 2" resultsIn ("No Eggs" withProbabilityOf 0.9460574905679491)
+                    "State 2" resultsIn ("Eggs" withProbabilityOf 0.053942509432051)
 
                 }
 
         trainedHmm.initialStateProbabilities shouldBe
                 listOf(
-                        "State 1" withProbabilityOf 0.2222222222222222,
-                        "State 2" withProbabilityOf 0.7777777777777778
+                        "State 1" withProbabilityOf 0.23743363646286328,
+                        "State 2" withProbabilityOf 0.7625663635371367
                 )
 
         trainedHmm.totalLogLikelyHoodOfAllObservationSequences(trainingObservations) shouldBe (-9.024464380657644).plusOrMinus(1E-9)

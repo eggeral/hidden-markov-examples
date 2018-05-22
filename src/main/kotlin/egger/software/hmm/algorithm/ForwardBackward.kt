@@ -149,3 +149,13 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.totalLogLikel
     return result
 
 }
+
+fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.totalLikelyHoodOfAllObservationSequences(observationsList: List<List<TObservation>>): Double {
+
+    var result = 1.0
+    for (observation in observationsList) {
+        result *= this.observing(observation).probabilityOfObservedSequence()
+    }
+    return result
+
+}

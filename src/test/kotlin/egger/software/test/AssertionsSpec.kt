@@ -52,7 +52,7 @@ class AssertionsSpec {
 
         2.01 shouldBe 2.0.plusOrMinus(1E-2)
 
-        ({ 2.01 shouldBe 2.0.plusOrMinus(1E-3) }) shouldThrow { exception -> exception is AssertionError && exception.message == "expected:<2.01> plus or minus 0.001, but was:<2.0>" }
+        ({ 2.01 shouldBe 2.0.plusOrMinus(1E-3) }) shouldThrow { exception -> exception is AssertionError && exception.message == "expected:<2.0> plus or minus 0.001, but was:<2.01>" }
 
     }
 
@@ -136,7 +136,7 @@ class AssertionsSpec {
                     mapOf("c" to 3.0.plusOrMinus(1E-1))
 
             )
-        } shouldThrow { exception -> exception is AssertionError && exception.message == "map value does not match for key: a at list index 0. expected:<1.01> plus or minus 0.01, but was:<1.0>" }
+        } shouldThrow { exception -> exception is AssertionError && exception.message == "map value does not match for key: a at list index 0. expected:<1.0> plus or minus 0.01, but was:<1.01>" }
 
     }
 

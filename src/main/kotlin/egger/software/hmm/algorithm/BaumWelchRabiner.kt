@@ -25,7 +25,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
 
         val forwardBackwardCalculationResult = this.observing(observation).calculateForwardBackward()
 
-        val probabilityOfBeingInStateAtTimeOne = this.observing(observation).probabilityOfBeingInState(1)
+        val probabilityOfBeingInStateAtTimeOne = this.observing(observation).probabilityOfBeingInState(forwardBackwardCalculationResult, 1)
         for (state in this.states) {
             expectedNumberOfTimesInStateAtTheBeginning[state] = expectedNumberOfTimesInStateAtTheBeginning[state]!! + probabilityOfBeingInStateAtTimeOne[state]!!
         }
@@ -41,7 +41,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
                 }
             }
 
-            val probabilityOfBeingInState = this.observing(observation).probabilityOfBeingInState(time)
+            val probabilityOfBeingInState = this.observing(observation).probabilityOfBeingInState(forwardBackwardCalculationResult, time)
 
             for (sourceState in this.states) {
                 expectedTotalNumberOfTransitionsAwayFromState[sourceState] = expectedTotalNumberOfTransitionsAwayFromState[sourceState]!! +
@@ -52,7 +52,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
 
         for (time in 1..observation.size) {
             for (state in this.states) {
-                expectedNumberOfTimesInState[state] = expectedNumberOfTimesInState[state]!! + this.observing(observation).probabilityOfBeingInState(time)[state]!!
+                expectedNumberOfTimesInState[state] = expectedNumberOfTimesInState[state]!! + this.observing(observation).probabilityOfBeingInState(forwardBackwardCalculationResult, time)[state]!!
             }
         }
 
@@ -61,7 +61,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
                 for (targetObservation in this.observations) {
                     if (targetObservation == observation[time - 1]) {
                         expectedNumberOfTimesInStateAndObserving[sourceState]!![targetObservation] = expectedNumberOfTimesInStateAndObserving[sourceState]!![targetObservation]!! +
-                                this.observing(observation).probabilityOfBeingInState(time)[sourceState]!!
+                                this.observing(observation).probabilityOfBeingInState(forwardBackwardCalculationResult, time)[sourceState]!!
                     }
                 }
             }
@@ -93,12 +93,12 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
     return HiddenMarkovModel(newInitialProbabilities, newTransitionProbabilities, newEmissionProbabilities)
 }
 
-fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfBeingInState(time: Int): Map<TState, Double> {
+fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservation>.probabilityOfBeingInState(forwardBackwardCalculationResult: ForwardBackwardCalculationResult<TState>, time: Int): Map<TState, Double> {
 
     val result = mutableMapOf<TState, Double>()
     var totalSum = 0.0
-    val alpha = this.probabilityOfObservedSequenceForEachHiddenState(time)
-    val beta = this.beta(time)
+    val alpha = forwardBackwardCalculationResult.forward[time]
+    val beta = forwardBackwardCalculationResult.backward[time]
 
     for (sourceState in this.hiddenMarkovModel.states) {
         val value = alpha[sourceState]!! * beta[sourceState]!!

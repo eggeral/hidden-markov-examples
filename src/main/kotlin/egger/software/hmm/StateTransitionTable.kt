@@ -19,14 +19,14 @@ class StateTransitionTable<TSourceState, TTargetState> {
             for (transitions in sourceToTargets) {
                 val sum = transitions.value.entries.sumByDouble { it.value }
                 transitions.value.entries.forEach {
-                    normalized.addTransition(transitions.key, (it.key withProbabilityOf it.value / sum))
+                    normalized.setTransition(transitions.key, (it.key withProbabilityOf it.value / sum))
                 }
             }
             return normalized
 
         }
 
-    fun addTransition(sourceState: TSourceState, targetWithProbability: StateWithProbability<TTargetState>) {
+    fun setTransition(sourceState: TSourceState, targetWithProbability: StateWithProbability<TTargetState>) {
 
         var targetsForSource = sourceToTargets[sourceState]
         if (targetsForSource == null) {
@@ -35,11 +35,12 @@ class StateTransitionTable<TSourceState, TTargetState> {
         }
         targetsForSource[targetWithProbability.state] = targetWithProbability.probability
 
-        targets.add(targetWithProbability.state)
+        if (!targets.contains(targetWithProbability.state))
+            targets.add(targetWithProbability.state)
 
     }
 
-    infix fun TSourceState.resultsIn(targetWithProbability: StateWithProbability<TTargetState>) = addTransition(this, targetWithProbability)
+    infix fun TSourceState.resultsIn(targetWithProbability: StateWithProbability<TTargetState>) = setTransition(this, targetWithProbability)
 
     fun given(state: TSourceState): Map<TTargetState, Double> = sourceToTargets[state]
             ?: throw IllegalStateException("State: $state not found")
@@ -52,7 +53,7 @@ class StateTransitionTable<TSourceState, TTargetState> {
         val stringBuilder = StringBuilder()
 
         for (source in sources) {
-            stringBuilder.append("$source - [ ")
+            stringBuilder.append("'$source' - [ ")
             stringBuilder.append(sourceToTargets[source]!!.entries.map { target -> "'${target.key}':(${target.value})" }.joinToString())
             stringBuilder.append(" ]\n")
         }
@@ -87,6 +88,9 @@ fun <TSourceState, TTargetState> stateTransitionTable(init: StateTransitionTable
 infix fun <TState> TState.withProbabilityOf(probability: Double) = StateWithProbability(this, probability)
 infix fun <TState> Map<TState, Double>.probabilityOf(state: TState) = this[state]
         ?: throw IllegalStateException("State: $state not found")
+
+val <TState> List<StateWithProbability<TState>>.stateWithMaxProbability: TState?
+    get() = this.maxBy { stateWithProbability -> stateWithProbability.probability }?.state
 
 
 fun <TState> StateTransitionTable<TState, TState>.sequenceLogLikelihood(states: List<TState>): Double {
@@ -125,7 +129,7 @@ fun <TState> StateTransitionTable<TState, TState>.sequenceLikelihood(states: Lis
 
 fun <TState> StateTransitionTable<TState, TState>.sequenceLikelihood(vararg states: TState): Double = this.sequenceLikelihood(states.asList())
 
-fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransitionTable<TState, TState> {
+fun <TState> createStateTransitionTableFrom(stateList: List<TState>): StateTransitionTable<TState, TState> {
 
     val states = stateList.groupBy { it }.map { entry -> entry.key }
     var previous = stateList.first()
@@ -134,7 +138,7 @@ fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransit
     for (state in stateList.drop(1)) {
 
         val source = stateCounts.getOrPut(previous) { mutableMapOf() }
-        source.compute(state) { _, v -> if (v == null) 1 else v + 1 }
+        source.compute(state) { _, count -> if (count == null) 1 else count + 1 }
         previous = state
 
     }
@@ -142,7 +146,8 @@ fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransit
     return stateTransitionTable {
 
         for (state in states) {
-            val counts = requireNotNull(stateCounts[state])
+            val counts = stateCounts[state] ?: continue
+
             val total = counts.map { entry -> entry.value }.sum().toDouble()
             for (destination in counts) {
                 state resultsIn (destination.key withProbabilityOf destination.value.toDouble() / total)
@@ -153,3 +158,22 @@ fun <TState> estimateStateTransitionTable(stateList: List<TState>): StateTransit
 
 }
 
+fun <TState> combinedState(vararg subStates: TState): CombinedState<TState> = CombinedState(subStates.toList())
+
+data class CombinedState<TState>(val subStates: List<TState>)
+
+fun <TState> List<TState>.asCombinedStates(size: Int): List<CombinedState<TState>> {
+
+    val queue = FixedCapacityQueue<TState>(size)
+    val result = mutableListOf<CombinedState<TState>>()
+
+    for (state in this) {
+        queue.add(state)
+        if (queue.size >= size) {
+            result.add(CombinedState(queue.iterator().asSequence().toList()))
+        }
+    }
+
+    return result
+
+}

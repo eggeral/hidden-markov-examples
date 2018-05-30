@@ -63,7 +63,7 @@ class PlanetMedianExample {
         estimatedInitialStateProbabilities[2].state shouldBe Red
         estimatedInitialStateProbabilities[2].probability shouldBe 0.28.plusOrMinus(0.01)
 
-        val estimatedModel = estimateStateTransitionTable(stateList)
+        val estimatedModel = createStateTransitionTableFrom(stateList)
 
         estimatedModel.given(Red) probabilityOf (Red) shouldBe (0.25.plusOrMinus(0.01))
         estimatedModel.given(Red) probabilityOf (Green) shouldBe (0.5.plusOrMinus(0.01))
@@ -157,10 +157,10 @@ class PlanetMedianExample {
         // when
         // we estimate the models of the provinces
 
-        val northEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(northInitialProbabilities, northTrueModel, random, 35200))
-        val eastEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(eastInitialProbabilities, eastTrueModel, random, 35200))
-        val southEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(southInitialProbabilities, southTrueModel, random, 35200))
-        val westEstimatedModel = estimateStateTransitionTable(generateStateSequenceAccordingToModel(westInitialProbabilities, westTrueModel, random, 35200))
+        val northEstimatedModel = createStateTransitionTableFrom(generateStateSequenceAccordingToModel(northInitialProbabilities, northTrueModel, random, 35200))
+        val eastEstimatedModel = createStateTransitionTableFrom(generateStateSequenceAccordingToModel(eastInitialProbabilities, eastTrueModel, random, 35200))
+        val southEstimatedModel = createStateTransitionTableFrom(generateStateSequenceAccordingToModel(southInitialProbabilities, southTrueModel, random, 35200))
+        val westEstimatedModel = createStateTransitionTableFrom(generateStateSequenceAccordingToModel(westInitialProbabilities, westTrueModel, random, 35200))
 
         // then
         // the estimated north model produces the highest probability for a sequence created by the north province

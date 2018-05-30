@@ -75,7 +75,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
 
     for (sourceState in this.states) {
         for (targetState in this.states) {
-            newTransitionProbabilities.addTransition(sourceState, targetState withProbabilityOf (
+            newTransitionProbabilities.setTransition(sourceState, targetState withProbabilityOf (
                     expectedNumberOfTransitionsFromStateToState[sourceState]!![targetState]!! /
                             expectedTotalNumberOfTransitionsAwayFromState[sourceState]!!))
         }
@@ -83,7 +83,7 @@ fun <TState, TObservation> HiddenMarkovModel<TState, TObservation>.trainOneStepU
 
     for (sourceState in this.states) {
         for (targetObservation in this.observations) {
-            newEmissionProbabilities.addTransition(sourceState, targetObservation withProbabilityOf (
+            newEmissionProbabilities.setTransition(sourceState, targetObservation withProbabilityOf (
                     expectedNumberOfTimesInStateAndObserving[sourceState]!![targetObservation]!! /
                             expectedNumberOfTimesInState[sourceState]!!))
         }
@@ -128,7 +128,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
             val value = alpha[sourceState]!! * beta[targetState]!! *
                     this.hiddenMarkovModel.stateTransitions.given(sourceState).probabilityOf(targetState) *
                     this.hiddenMarkovModel.observationProbabilities.given(targetState).probabilityOf(observations[time])
-            tmp.addTransition(sourceState, targetState withProbabilityOf (value))
+            tmp.setTransition(sourceState, targetState withProbabilityOf (value))
             totalSum += value
 
         }
@@ -140,7 +140,7 @@ fun <TState, TObservation> HiddenMarkovModelWithObservations<TState, TObservatio
         for (targetState in this.hiddenMarkovModel.states) {
 
             val tmpValue = tmp.given(sourceState).probabilityOf(targetState)
-            result.addTransition(sourceState, targetState.withProbabilityOf(tmpValue / totalSum))
+            result.setTransition(sourceState, targetState.withProbabilityOf(tmpValue / totalSum))
 
         }
     }
